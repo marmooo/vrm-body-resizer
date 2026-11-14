@@ -9,25 +9,37 @@ function packGlb(json, binBytes) {
   const jsonBytes = new TextEncoder().encode(jsonText);
   const jsonPadding = (4 - (jsonBytes.length % 4)) % 4;
   const jsonChunkLen = jsonBytes.length + jsonPadding;
-  const bin = binBytes instanceof Uint8Array ? binBytes : new Uint8Array(binBytes || 0);
+  const bin = binBytes instanceof Uint8Array
+    ? binBytes
+    : new Uint8Array(binBytes || 0);
   const binPadding = bin.byteLength ? (4 - (bin.byteLength % 4)) % 4 : 0;
   const binChunkLen = bin.byteLength + binPadding;
-  const totalLen = 12 + 8 + jsonChunkLen + (bin.byteLength ? 8 + binChunkLen : 0);
+  const totalLen = 12 + 8 + jsonChunkLen +
+    (bin.byteLength ? 8 + binChunkLen : 0);
   const out = new ArrayBuffer(totalLen);
   const dv = new DataView(out);
   const ua = new Uint8Array(out);
   let o = 0;
-  dv.setUint32(o, 0x46546c67, true); o += 4;
-  dv.setUint32(o, 2, true); o += 4;
-  dv.setUint32(o, totalLen, true); o += 4;
-  dv.setUint32(o, jsonChunkLen, true); o += 4;
-  dv.setUint32(o, 0x4e4f534a, true); o += 4;
-  ua.set(jsonBytes, o); o += jsonBytes.length;
+  dv.setUint32(o, 0x46546c67, true);
+  o += 4;
+  dv.setUint32(o, 2, true);
+  o += 4;
+  dv.setUint32(o, totalLen, true);
+  o += 4;
+  dv.setUint32(o, jsonChunkLen, true);
+  o += 4;
+  dv.setUint32(o, 0x4e4f534a, true);
+  o += 4;
+  ua.set(jsonBytes, o);
+  o += jsonBytes.length;
   for (let i = 0; i < jsonPadding; i++) ua[o++] = 0x20;
   if (bin.byteLength) {
-    dv.setUint32(o, binChunkLen, true); o += 4;
-    dv.setUint32(o, 0x004e4942, true); o += 4;
-    ua.set(bin, o); o += bin.byteLength;
+    dv.setUint32(o, binChunkLen, true);
+    o += 4;
+    dv.setUint32(o, 0x004e4942, true);
+    o += 4;
+    ua.set(bin, o);
+    o += bin.byteLength;
     for (let i = 0; i < binPadding; i++) ua[o++] = 0;
   }
   return out;
@@ -40,7 +52,11 @@ function encodeCanvas(canvas, mime, quality) {
     canvas.toBlob(
       (blob) => {
         if (!blob) return reject(new Error("toBlob failed: " + tryMime));
-        blob.arrayBuffer().then((ab) => resolve({ bytes: new Uint8Array(ab), mime: blob.type || tryMime }), reject);
+        blob.arrayBuffer().then(
+          (ab) =>
+            resolve({ bytes: new Uint8Array(ab), mime: blob.type || tryMime }),
+          reject,
+        );
       },
       tryMime,
       quality,
@@ -184,7 +200,9 @@ export async function compressGlbTextures(buffer, opts = {}) {
       result = await encodeCanvas(canvas, outMime, quality);
       // Safari 等で webp が image/png にフォールバックすることがある
       if (format === "webp" && result.mime && !result.mime.includes("webp")) {
-        if (verbose) console.warn("[tex] webp unsupported, got", result.mime, "image", i);
+        if (verbose) {
+          console.warn("[tex] webp unsupported, got", result.mime, "image", i);
+        }
       }
     } catch (e) {
       // webp 失敗時は png/jpeg へ
@@ -201,8 +219,7 @@ export async function compressGlbTextures(buffer, opts = {}) {
 
     const outBytes = result.bytes;
     // 解像度を下げている、または常に圧縮、または確実に小さくなった場合のみ採用
-    const accept =
-      needScale ||
+    const accept = needScale ||
       debugFast ||
       outBytes.byteLength < srcBytes.byteLength * 0.98;
 
@@ -224,7 +241,9 @@ export async function compressGlbTextures(buffer, opts = {}) {
     encoded++;
     if (verbose) {
       console.info(
-        `[tex] #${i} ${srcBytes.byteLength} → ${outBytes.byteLength} (${result.mime || outMime}) ${w}x${h}`,
+        `[tex] #${i} ${srcBytes.byteLength} → ${outBytes.byteLength} (${
+          result.mime || outMime
+        }) ${w}x${h}`,
       );
     }
   }

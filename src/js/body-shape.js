@@ -29,12 +29,28 @@ const FINGER_BONE_NAMES = [];
 });
 
 const HUMANOID_ROLES = [
-  "hips", "spine", "chest", "upperChest", "neck", "head",
-  "leftShoulder", "rightShoulder",
-  "leftUpperArm", "rightUpperArm", "leftLowerArm", "rightLowerArm",
-  "leftHand", "rightHand",
-  "leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg",
-  "leftFoot", "rightFoot", "leftToes", "rightToes",
+  "hips",
+  "spine",
+  "chest",
+  "upperChest",
+  "neck",
+  "head",
+  "leftShoulder",
+  "rightShoulder",
+  "leftUpperArm",
+  "rightUpperArm",
+  "leftLowerArm",
+  "rightLowerArm",
+  "leftHand",
+  "rightHand",
+  "leftUpperLeg",
+  "rightUpperLeg",
+  "leftLowerLeg",
+  "rightLowerLeg",
+  "leftFoot",
+  "rightFoot",
+  "leftToes",
+  "rightToes",
 ];
 
 const SCALE_PARENT = {
@@ -64,8 +80,9 @@ const SCALE_PARENT = {
   Object.keys(FINGER_SEGMENTS).forEach((finger) => {
     const segs = FINGER_SEGMENTS[finger];
     segs.forEach((seg, i) => {
-      SCALE_PARENT[side + finger + seg] =
-        i === 0 ? side + "Hand" : side + finger + segs[i - 1];
+      SCALE_PARENT[side + finger + seg] = i === 0
+        ? side + "Hand"
+        : side + finger + segs[i - 1];
     });
   });
 });
@@ -147,7 +164,13 @@ export const DEFAULTS = {
 export const SLIDER_META = {
   height: { min: 60, max: 150, label: "身長", section: "全体サイズ" },
   build: { min: 60, max: 160, label: "全体の厚み", section: "全体サイズ" },
-  bodyType: { min: -100, max: 100, label: "細身〜ぽっちゃり", section: "体型", special: "bodyType" },
+  bodyType: {
+    min: -100,
+    max: 100,
+    label: "細身〜ぽっちゃり",
+    section: "体型",
+    special: "bodyType",
+  },
   headWidth: { min: 60, max: 150, label: "頭の横幅", section: "頭部" },
   headLength: { min: 60, max: 150, label: "頭の縦幅", section: "頭部" },
   neckLength: { min: 40, max: 220, label: "首の長さ", section: "頭部" },
@@ -160,7 +183,13 @@ export const SLIDER_META = {
   waistSize: { min: 50, max: 170, label: "ウエスト", section: "腰" },
   hipWidth: { min: 60, max: 160, label: "腰幅", section: "腰" },
   hipDepth: { min: 50, max: 180, label: "腰の厚み", section: "腰" },
-  spineCurve: { min: -50, max: 50, label: "背骨のカーブ", section: "腰", special: "spineCurve" },
+  spineCurve: {
+    min: -50,
+    max: 50,
+    label: "背骨のカーブ",
+    section: "腰",
+    special: "spineCurve",
+  },
   upperArmLength: { min: 60, max: 170, label: "上腕の長さ", section: "腕" },
   upperArmThickness: { min: 50, max: 200, label: "上腕の太さ", section: "腕" },
   lowerArmLength: { min: 60, max: 170, label: "前腕の長さ", section: "腕" },
@@ -179,7 +208,12 @@ export const SLIDER_META = {
   littleLength: { min: 40, max: 220, label: "小指：長さ", section: "指" },
   littleThickness: { min: 40, max: 220, label: "小指：太さ", section: "指" },
   upperLegLength: { min: 60, max: 150, label: "太ももの長さ", section: "脚" },
-  upperLegThickness: { min: 50, max: 200, label: "太ももの太さ", section: "脚" },
+  upperLegThickness: {
+    min: 50,
+    max: 200,
+    label: "太ももの太さ",
+    section: "脚",
+  },
   lowerLegLength: { min: 60, max: 150, label: "すねの長さ", section: "脚" },
   lowerLegThickness: { min: 50, max: 200, label: "すねの太さ", section: "脚" },
   footLength: { min: 50, max: 180, label: "足の長さ", section: "足" },
@@ -267,7 +301,8 @@ export class BodyShapeController {
       }
       this._boneNodes[name] = node;
     });
-    this._foundCount = HUMANOID_ROLES.filter((r) => !!this._boneNodes[r]).length;
+    this._foundCount =
+      HUMANOID_ROLES.filter((r) => !!this._boneNodes[r]).length;
     console.info(
       `[body-shape] VRM bones: ${this._foundCount} / ${HUMANOID_ROLES.length}`,
     );
@@ -310,8 +345,8 @@ export class BodyShapeController {
       if (vrm.scene) {
         vrm.scene.updateMatrixWorld(true);
         const restBox = new THREE.Box3().setFromObject(vrm.scene);
-        const footNode =
-          this._getBoneNode("leftFoot") || this._getBoneNode("rightFoot");
+        const footNode = this._getBoneNode("leftFoot") ||
+          this._getBoneNode("rightFoot");
         if (!restBox.isEmpty() && footNode) {
           footNode.getWorldPosition(this._groundProbe);
           this._footGroundOffset = Math.max(
@@ -408,10 +443,9 @@ export class BodyShapeController {
 
   /** morpholith scaleBoneLTT */
   _scaleBoneLTT(roleKey, lengthVal, thickA, thickB) {
-    const axis =
-      this._boneLengthAxis[roleKey] !== undefined
-        ? this._boneLengthAxis[roleKey]
-        : 1;
+    const axis = this._boneLengthAxis[roleKey] !== undefined
+      ? this._boneLengthAxis[roleKey]
+      : 1;
     let sx, sy, sz;
     if (axis === 0) {
       sx = lengthVal;
@@ -468,10 +502,9 @@ export class BodyShapeController {
       const rest = this._restLocalPos[role];
       if (!node || !rest) continue;
       const parentKey = SCALE_PARENT[role];
-      const pc =
-        parentKey && this._cumulativeScale[parentKey]
-          ? this._cumulativeScale[parentKey]
-          : { x: 1, y: 1, z: 1 };
+      const pc = parentKey && this._cumulativeScale[parentKey]
+        ? this._cumulativeScale[parentKey]
+        : { x: 1, y: 1, z: 1 };
       let lengthAxis = 1;
       if (parentKey && this._boneLengthAxis[parentKey] !== undefined) {
         lengthAxis = this._boneLengthAxis[parentKey];
@@ -719,8 +752,8 @@ export class BodyShapeController {
       vrm.scene.position.set(keepX, 0, keepZ);
       return;
     }
-    const soleGap =
-      this._footGroundOffset * (p.height || 1) * (p.footHeight || 1);
+    const soleGap = this._footGroundOffset * (p.height || 1) *
+      (p.footHeight || 1);
     vrm.scene.position.set(keepX, -(minY - soleGap), keepZ);
     vrm.scene.updateMatrixWorld(true);
   }
@@ -796,8 +829,6 @@ export class BodyShapeController {
     this.apply();
   }
 
-
-
   /**
    * 体型適用後の実寸目安を canvas 左上に出す。
    * - 身長: 足底〜頭頂（髪の毛先や手上げを除外するためボーン基準）
@@ -848,7 +879,8 @@ export class BodyShapeController {
         headTopY = Math.max(headTopY, headBox.max.y);
       } else {
         // メッシュが頭ボーン直下に無いモデル向けのフォールバック
-        headTopY = pos.y + 0.12 * (this.params.headLength || 1) * (this.params.height || 1);
+        headTopY = pos.y +
+          0.12 * (this.params.headLength || 1) * (this.params.height || 1);
       }
     }
 
@@ -937,7 +969,9 @@ export class BodyShapeController {
     if (bustM > 0.2 && waistM > 0.15 && hipM > 0.2) {
       set(
         "metric-bwh",
-        `${(bustM * 100).toFixed(0)} / ${(waistM * 100).toFixed(0)} / ${(hipM * 100).toFixed(0)}`,
+        `${(bustM * 100).toFixed(0)} / ${(waistM * 100).toFixed(0)} / ${
+          (hipM * 100).toFixed(0)
+        }`,
       );
     } else {
       set("metric-bwh", "—");
@@ -1044,8 +1078,10 @@ export class BodyShapeController {
 
     // ウエスト: 胸下〜ヒップ上の範囲でいちばん細い断面を採用（自然ウエスト）
     // 服のシワや固定高さの外れを避け、W が B/H に近づきすぎるのを防ぐ
-    const waistY0 = Math.min(yChest, yHipsBone) + Math.abs(yChest - yHipsBone) * 0.2;
-    const waistY1 = Math.min(yChest, yHipsBone) + Math.abs(yChest - yHipsBone) * 0.75;
+    const waistY0 = Math.min(yChest, yHipsBone) +
+      Math.abs(yChest - yHipsBone) * 0.2;
+    const waistY1 = Math.min(yChest, yHipsBone) +
+      Math.abs(yChest - yHipsBone) * 0.75;
     let waist = null;
     let waistGirth = Infinity;
     const waistSteps = 10;
@@ -1109,16 +1145,17 @@ export class BodyShapeController {
       // 髪・腕・袖・裾など胴コア以外を名前で除外
       if (
         obj.name &&
-        /hair|bangs|尾|髪|ponytail|ahoge|skirt|sleeve|arm|手|腕|袖|裾|ribbon|wing|cloak|cape/i.test(
-          obj.name,
-        )
-      )
+        /hair|bangs|尾|髪|ponytail|ahoge|skirt|sleeve|arm|手|腕|袖|裾|ribbon|wing|cloak|cape/i
+          .test(
+            obj.name,
+          )
+      ) {
         return;
+      }
       const posAttr = obj.geometry.attributes?.position;
       if (!posAttr) return;
 
-      const isSkinned =
-        obj.isSkinnedMesh &&
+      const isSkinned = obj.isSkinnedMesh &&
         obj.skeleton &&
         typeof obj.boneTransform === "function";
       if (!isSkinned) obj.updateWorldMatrix(true, false);
@@ -1188,8 +1225,7 @@ export class BodyShapeController {
     this._bound = true;
 
     // 委譲: 左サイドバー全体（ヘッダーのランダム/リセット含む）
-    const panel =
-      document.getElementById("panel-left") ||
+    const panel = document.getElementById("panel-left") ||
       document.getElementById("body-shape-panel") ||
       document.getElementById("panel-tab-model");
     if (panel) {
@@ -1236,7 +1272,8 @@ export class BodyShapeController {
 
   /** HTML 上の体型ラベルを i18n 辞書で上書き（言語別HTMLと二重でも安全） */
   _applyLabels() {
-    const panel = document.getElementById("body-shape-panel") || document.getElementById("panel-left");
+    const panel = document.getElementById("body-shape-panel") ||
+      document.getElementById("panel-left");
     if (!panel) return;
     for (const key of Object.keys(SLIDER_META)) {
       const label = panel.querySelector(`label[for="p_${key}"]`);
@@ -1247,7 +1284,9 @@ export class BodyShapeController {
           label.title = text;
         }
       }
-      const resetBtn = panel.querySelector(`.body-slider-reset[data-body-key="${key}"]`);
+      const resetBtn = panel.querySelector(
+        `.body-slider-reset[data-body-key="${key}"]`,
+      );
       if (resetBtn) {
         const t = tr("body." + key + ".reset");
         if (t && t !== "body." + key + ".reset") {
@@ -1274,7 +1313,9 @@ export class BodyShapeController {
       }
     }
     // panel title
-    const title = document.querySelector("#panel-left .p-2.border-bottom span.small.fw-bold");
+    const title = document.querySelector(
+      "#panel-left .p-2.border-bottom span.small.fw-bold",
+    );
     if (title) {
       const t = tr("body.panel");
       if (t !== "body.panel") {

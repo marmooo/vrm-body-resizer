@@ -6,7 +6,9 @@
 
 export function parseGlb(buffer) {
   const view = new DataView(buffer);
-  if (view.getUint32(0, true) !== 0x46546c67) throw new Error("GLB ではありません");
+  if (view.getUint32(0, true) !== 0x46546c67) {
+    throw new Error("GLB ではありません");
+  }
   if (view.getUint32(4, true) !== 2) throw new Error("GLB version 2 のみ対応");
   let offset = 12;
   let json = null;
@@ -54,22 +56,32 @@ function packGlb(json, bin) {
   const binBytes = bin ? new Uint8Array(bin) : new Uint8Array(0);
   const binPadding = binBytes.length ? (4 - (binBytes.length % 4)) % 4 : 0;
   const binChunkLen = binBytes.length + binPadding;
-  const totalLen = 12 + 8 + jsonChunkLen + (binBytes.length ? 8 + binChunkLen : 0);
+  const totalLen = 12 + 8 + jsonChunkLen +
+    (binBytes.length ? 8 + binChunkLen : 0);
   const out = new ArrayBuffer(totalLen);
   const outView = new DataView(out);
   const outArr = new Uint8Array(out);
   let o = 0;
-  outView.setUint32(o, 0x46546c67, true); o += 4;
-  outView.setUint32(o, 2, true); o += 4;
-  outView.setUint32(o, totalLen, true); o += 4;
-  outView.setUint32(o, jsonChunkLen, true); o += 4;
-  outView.setUint32(o, 0x4e4f534a, true); o += 4;
-  outArr.set(jsonBytes, o); o += jsonBytes.length;
+  outView.setUint32(o, 0x46546c67, true);
+  o += 4;
+  outView.setUint32(o, 2, true);
+  o += 4;
+  outView.setUint32(o, totalLen, true);
+  o += 4;
+  outView.setUint32(o, jsonChunkLen, true);
+  o += 4;
+  outView.setUint32(o, 0x4e4f534a, true);
+  o += 4;
+  outArr.set(jsonBytes, o);
+  o += jsonBytes.length;
   for (let i = 0; i < jsonPadding; i++) outArr[o++] = 0x20;
   if (binBytes.length) {
-    outView.setUint32(o, binChunkLen, true); o += 4;
-    outView.setUint32(o, 0x004e4942, true); o += 4;
-    outArr.set(binBytes, o); o += binBytes.length;
+    outView.setUint32(o, binChunkLen, true);
+    o += 4;
+    outView.setUint32(o, 0x004e4942, true);
+    o += 4;
+    outArr.set(binBytes, o);
+    o += binBytes.length;
     for (let i = 0; i < binPadding; i++) outArr[o++] = 0;
   }
   return out;
@@ -116,21 +128,32 @@ export function exportBodyShapedVrm(originalBuffer, vrm, rootParams = {}) {
       let haveScale = false;
       if (scaleMap && scaleMap.has(boneName)) {
         const s = scaleMap.get(boneName);
-        sx = s[0]; sy = s[1]; sz = s[2];
+        sx = s[0];
+        sy = s[1];
+        sz = s[2];
         haveScale = true;
       } else if (humanoid) {
         let src = null;
-        try { src = humanoid.getRawBoneNode?.(boneName); } catch (_) {}
+        try {
+          src = humanoid.getRawBoneNode?.(boneName);
+        } catch (_) {}
         if (!src) {
-          try { src = humanoid.humanBones?.[boneName]?.node; } catch (_) {}
+          try {
+            src = humanoid.humanBones?.[boneName]?.node;
+          } catch (_) {}
         }
         if (src?.scale) {
-          sx = src.scale.x; sy = src.scale.y; sz = src.scale.z;
+          sx = src.scale.x;
+          sy = src.scale.y;
+          sz = src.scale.z;
           haveScale = true;
         }
       }
       if (haveScale) {
-        if (Math.abs(sx - 1) > 1e-6 || Math.abs(sy - 1) > 1e-6 || Math.abs(sz - 1) > 1e-6) {
+        if (
+          Math.abs(sx - 1) > 1e-6 || Math.abs(sy - 1) > 1e-6 ||
+          Math.abs(sz - 1) > 1e-6
+        ) {
           node.scale = [sx, sy, sz];
         } else if (node.scale) {
           delete node.scale;

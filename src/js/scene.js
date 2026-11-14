@@ -281,7 +281,11 @@ export class SceneManager {
       vrm.update(delta);
       // humanoid 反映の直後・揺れ物の前に体型スケールを戻す
       if (typeof this.onAfterHumanoidUpdate === "function") {
-        try { this.onAfterHumanoidUpdate(vrm, delta); } catch (e) { console.warn(e); }
+        try {
+          this.onAfterHumanoidUpdate(vrm, delta);
+        } catch (e) {
+          console.warn(e);
+        }
       }
       return;
     }
@@ -293,7 +297,11 @@ export class SceneManager {
     }
     // 揺れ物の計算前に body scale を再適用（毎フレーム scale を触ると揺れが止まらないため、コールバック側で差分のみ）
     if (typeof this.onAfterHumanoidUpdate === "function") {
-      try { this.onAfterHumanoidUpdate(vrm, delta); } catch (e) { console.warn(e); }
+      try {
+        this.onAfterHumanoidUpdate(vrm, delta);
+      } catch (e) {
+        console.warn(e);
+      }
     }
     this._refreshStrict(vrm); // 厳密な当たり判定の球を、今のボーンの位置に合わせる
     let pending = (this._physicsClock.get(vrm) ?? 0) + delta;
@@ -323,7 +331,11 @@ export class SceneManager {
     }
     // 体型スケールなど、humanoid.update 後に再適用したい処理
     if (typeof this.onAfterVrmUpdate === "function") {
-      try { this.onAfterVrmUpdate(delta); } catch (e) { console.warn("[scene] onAfterVrmUpdate", e); }
+      try {
+        this.onAfterVrmUpdate(delta);
+      } catch (e) {
+        console.warn("[scene] onAfterVrmUpdate", e);
+      }
     }
     this._updateSelectionPulses(delta);
     this.sceneObjects?.update(delta);

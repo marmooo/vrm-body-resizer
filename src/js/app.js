@@ -154,7 +154,6 @@ class App {
       } catch (_) {}
     };
 
-
     this._boneCtrl = new BoneController(this._canvas, this._scene, {
       // キャンバス上でオブジェクトをクリック/ドラッグした時(選択・移動)
       pickObject: (raycaster) => this._objects.pick(raycaster),
@@ -162,7 +161,8 @@ class App {
       onObjectSelect: (id) => this._objects.select(id),
       onObjectDrag: (id, dx, dy) => this._objects.translate(id, dx, dy),
       // キャンバス上のギズモ(回転リング・拡大縮小ハンドル) ※対応実装がある場合のみ
-      hitObjectGizmo: (raycaster) => this._objects.hitGizmo?.(raycaster) ?? null,
+      hitObjectGizmo: (raycaster) =>
+        this._objects.hitGizmo?.(raycaster) ?? null,
       onObjectGizmoRotate: (axis, angle) =>
         this._objects.rotateAboutCenter?.(axis, angle),
       onObjectGizmoScale: (scale) => this._objects.setScaleAboutCenter?.(scale),
@@ -441,23 +441,33 @@ class App {
     });
 
     // 体型 UI
-    try { this._bodyShape.bindUI(); } catch (err) { console.warn("[body-shape] bindUI", err); }
+    try {
+      this._bodyShape.bindUI();
+    } catch (err) {
+      console.warn("[body-shape] bindUI", err);
+    }
 
     // 軽量出力
-    document.getElementById("btn-export-model")?.addEventListener("click", () => this._exportLightweight("vrm"));
+    document.getElementById("btn-export-model")?.addEventListener(
+      "click",
+      () => this._exportLightweight("vrm"),
+    );
     this._bindExportOptionUI();
     document.getElementById("btn-body-reset")?.addEventListener("click", () => {
       try {
         this._bodyShape?.reset();
         this._showToast(tr("body.resetDone"), "secondary");
-      } catch (e) { console.warn(e); }
+      } catch (e) {
+        console.warn(e);
+      }
     });
 
     // オブジェクト追加 UI は簡易版で無効化
     this._btnObjectAdd?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this._ui?.toast?.("オブジェクト機能は簡易版では無効です") || console.info("[simple] objects disabled");
+      this._ui?.toast?.("オブジェクト機能は簡易版では無効です") ||
+        console.info("[simple] objects disabled");
     });
 
     // ポーズ読込(GLB / FBX / VRMA を拡張子で判別)と自己完結プロジェクトの保存・読込
@@ -470,7 +480,10 @@ class App {
       () => this._toggleRandomAnimation(),
     );
 
-    this._btnLoadPose?.addEventListener("click", () => this._inputPose?.click());
+    this._btnLoadPose?.addEventListener(
+      "click",
+      () => this._inputPose?.click(),
+    );
     this._inputPose?.addEventListener("change", async (e) => {
       const file = e.target.files?.[0];
       if (file) await this._loadAnyModelFile(file);
@@ -748,7 +761,9 @@ class App {
       };
       this._models.push(model);
       this._scene.setVrms([vrm]);
-      try { model.thumbnail = this._scene.captureFaceThumbnail(vrm); } catch (_) {}
+      try {
+        model.thumbnail = this._scene.captureFaceThumbnail(vrm);
+      } catch (_) {}
       this._activateModel(model.id);
       this._showToast(tr("app.011", file.name), "success");
     } catch (err) {
@@ -787,8 +802,12 @@ class App {
     this._vrm = null;
     this._vrmFile = null;
     this._vrmFilename = "";
-    try { this._scene.setVrms([]); } catch (_) {}
-    try { this._bodyShape?.unbindModel(); } catch (_) {}
+    try {
+      this._scene.setVrms([]);
+    } catch (_) {}
+    try {
+      this._bodyShape?.unbindModel();
+    } catch (_) {}
   }
 
   // =========================================================
@@ -1043,7 +1062,9 @@ class App {
         this._bodyShape.bindModel(model.vrm);
         model._bodyRestCaptured = true;
       }
-    } catch (e) { console.warn("[body-shape] on activate", e); }
+    } catch (e) {
+      console.warn("[body-shape] on activate", e);
+    }
     // 出力ボタンは _setButtonsEnabled で有効化
     this._updateAnimationButton(model);
     this._updateRandomAnimationButton(model);
@@ -2253,7 +2274,9 @@ class App {
   _updateRandomAnimationButton(model) {
     const active = !!model?.randomAnimationActive;
     if (this._btnRandomAnimation) {
-      this._btnRandomAnimation.innerHTML = active ? tr("app.039") : tr("app.040");
+      this._btnRandomAnimation.innerHTML = active
+        ? tr("app.039")
+        : tr("app.040");
       this._btnRandomAnimation.classList.toggle("btn-info", active);
       this._btnRandomAnimation.classList.toggle("btn-outline-info", !active);
     }
@@ -2774,7 +2797,9 @@ class App {
       if (btn) btn.disabled = !enabled;
     });
     this._modelButtonsEnabled = enabled;
-    try { this._updateAnimationSelectState(); } catch (_) {}
+    try {
+      this._updateAnimationSelectState();
+    } catch (_) {}
   }
 
   _showToast(message, type = "secondary") {
@@ -2826,54 +2851,77 @@ class App {
         b.classList.toggle("active", b.getAttribute(attr) === value);
       });
     };
-    document.getElementById("exportCompressModeToggle")?.addEventListener("click", (e) => {
-      const btn = e.target?.closest?.("button[data-mode]");
-      if (!btn) return;
-      setActive("exportCompressModeToggle", "data-mode", btn.getAttribute("data-mode"));
-    });
-    document.getElementById("exportTexFormatToggle")?.addEventListener("click", (e) => {
-      const btn = e.target?.closest?.("button[data-format]");
-      if (!btn) return;
-      setActive("exportTexFormatToggle", "data-format", btn.getAttribute("data-format"));
-    });
-    document.getElementById("exportPresetToggle")?.addEventListener("click", (e) => {
-      const btn = e.target?.closest?.("button[data-preset]");
-      if (!btn) return;
-      const preset = btn.getAttribute("data-preset");
-      setActive("exportPresetToggle", "data-preset", preset);
-      const scale = document.getElementById("exportTexScale");
-      const quality = document.getElementById("exportTexQuality");
-      const draco = document.getElementById("exportDraco");
-      const vScale = document.getElementById("v_exportTexScale");
-      const vQual = document.getElementById("v_exportTexQuality");
-      if (preset === "quality") {
-        if (scale) scale.value = "100";
-        if (quality) quality.value = "92";
-        if (draco) draco.checked = false;
-        setActive("exportCompressModeToggle", "data-mode", "whenNeeded");
-      } else if (preset === "balanced") {
-        if (scale) scale.value = "75";
-        if (quality) quality.value = "85";
-        if (draco) draco.checked = false;
-        setActive("exportCompressModeToggle", "data-mode", "always");
-      } else if (preset === "light") {
-        if (scale) scale.value = "50";
-        if (quality) quality.value = "75";
-        if (draco) draco.checked = true;
-        setActive("exportCompressModeToggle", "data-mode", "always");
-        setActive("exportTexFormatToggle", "data-format", "webp");
-      }
-      if (vScale && scale) vScale.textContent = scale.value + "%";
-      if (vQual && quality) vQual.textContent = quality.value;
-    });
-    document.getElementById("exportTexScale")?.addEventListener("input", (e) => {
-      const lab = document.getElementById("v_exportTexScale");
-      if (lab) lab.textContent = e.target.value + "%";
-    });
-    document.getElementById("exportTexQuality")?.addEventListener("input", (e) => {
-      const lab = document.getElementById("v_exportTexQuality");
-      if (lab) lab.textContent = e.target.value;
-    });
+    document.getElementById("exportCompressModeToggle")?.addEventListener(
+      "click",
+      (e) => {
+        const btn = e.target?.closest?.("button[data-mode]");
+        if (!btn) return;
+        setActive(
+          "exportCompressModeToggle",
+          "data-mode",
+          btn.getAttribute("data-mode"),
+        );
+      },
+    );
+    document.getElementById("exportTexFormatToggle")?.addEventListener(
+      "click",
+      (e) => {
+        const btn = e.target?.closest?.("button[data-format]");
+        if (!btn) return;
+        setActive(
+          "exportTexFormatToggle",
+          "data-format",
+          btn.getAttribute("data-format"),
+        );
+      },
+    );
+    document.getElementById("exportPresetToggle")?.addEventListener(
+      "click",
+      (e) => {
+        const btn = e.target?.closest?.("button[data-preset]");
+        if (!btn) return;
+        const preset = btn.getAttribute("data-preset");
+        setActive("exportPresetToggle", "data-preset", preset);
+        const scale = document.getElementById("exportTexScale");
+        const quality = document.getElementById("exportTexQuality");
+        const draco = document.getElementById("exportDraco");
+        const vScale = document.getElementById("v_exportTexScale");
+        const vQual = document.getElementById("v_exportTexQuality");
+        if (preset === "quality") {
+          if (scale) scale.value = "100";
+          if (quality) quality.value = "92";
+          if (draco) draco.checked = false;
+          setActive("exportCompressModeToggle", "data-mode", "whenNeeded");
+        } else if (preset === "balanced") {
+          if (scale) scale.value = "75";
+          if (quality) quality.value = "85";
+          if (draco) draco.checked = false;
+          setActive("exportCompressModeToggle", "data-mode", "always");
+        } else if (preset === "light") {
+          if (scale) scale.value = "50";
+          if (quality) quality.value = "75";
+          if (draco) draco.checked = true;
+          setActive("exportCompressModeToggle", "data-mode", "always");
+          setActive("exportTexFormatToggle", "data-format", "webp");
+        }
+        if (vScale && scale) vScale.textContent = scale.value + "%";
+        if (vQual && quality) vQual.textContent = quality.value;
+      },
+    );
+    document.getElementById("exportTexScale")?.addEventListener(
+      "input",
+      (e) => {
+        const lab = document.getElementById("v_exportTexScale");
+        if (lab) lab.textContent = e.target.value + "%";
+      },
+    );
+    document.getElementById("exportTexQuality")?.addEventListener(
+      "input",
+      (e) => {
+        const lab = document.getElementById("v_exportTexQuality");
+        if (lab) lab.textContent = e.target.value;
+      },
+    );
   }
 
   _readExportOptions() {
@@ -2881,11 +2929,19 @@ class App {
       const btn = document.querySelector(`#${groupId} button.active`);
       return btn?.getAttribute(attr) || fallback;
     };
-    const scalePct = parseFloat(document.getElementById("exportTexScale")?.value || "100");
-    const qualityPct = parseFloat(document.getElementById("exportTexQuality")?.value || "92");
+    const scalePct = parseFloat(
+      document.getElementById("exportTexScale")?.value || "100",
+    );
+    const qualityPct = parseFloat(
+      document.getElementById("exportTexQuality")?.value || "92",
+    );
     return {
       textureScale: Math.max(0.25, Math.min(1, (scalePct || 100) / 100)),
-      textureCompressMode: active("exportCompressModeToggle", "data-mode", "whenNeeded"),
+      textureCompressMode: active(
+        "exportCompressModeToggle",
+        "data-mode",
+        "whenNeeded",
+      ),
       textureFormat: active("exportTexFormatToggle", "data-format", "webp"),
       textureQuality: Math.max(0.5, Math.min(1, (qualityPct || 92) / 100)),
       draco: !!document.getElementById("exportDraco")?.checked,
@@ -2893,17 +2949,20 @@ class App {
   }
 
   async _exportLightweight(kind = "vrm") {
-
     const model = this._models.find((item) => item.id === this._activeModelId);
     const status = document.getElementById("export-status");
-    const setStatus = (msg) => { if (status) status.textContent = msg; };
+    const setStatus = (msg) => {
+      if (status) status.textContent = msg;
+    };
     if (!model?.vrm) {
       setStatus("先に VRM を読み込んでください");
       this._showToast("先に VRM を読み込んでください", "warning");
       return;
     }
     if (!model.file) {
-      setStatus("元の VRM ファイルがありません（ファイルから読み込んでください）");
+      setStatus(
+        "元の VRM ファイルがありません（ファイルから読み込んでください）",
+      );
       this._showToast("元の VRM ファイルが必要です", "warning");
       return;
     }
@@ -2924,12 +2983,28 @@ class App {
       const savedRaw = [];
       const savedNorm = [];
       const poseNames = [
-        "hips", "spine", "chest", "upperChest", "neck", "head",
-        "leftShoulder", "rightShoulder",
-        "leftUpperArm", "rightUpperArm", "leftLowerArm", "rightLowerArm",
-        "leftHand", "rightHand",
-        "leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg",
-        "leftFoot", "rightFoot", "leftToes", "rightToes",
+        "hips",
+        "spine",
+        "chest",
+        "upperChest",
+        "neck",
+        "head",
+        "leftShoulder",
+        "rightShoulder",
+        "leftUpperArm",
+        "rightUpperArm",
+        "leftLowerArm",
+        "rightLowerArm",
+        "leftHand",
+        "rightHand",
+        "leftUpperLeg",
+        "rightUpperLeg",
+        "leftLowerLeg",
+        "rightLowerLeg",
+        "leftFoot",
+        "rightFoot",
+        "leftToes",
+        "rightToes",
       ];
       if (humanoid) {
         for (const name of poseNames) {
@@ -2971,7 +3046,9 @@ class App {
               }
             } catch (_) {}
           }
-          try { humanoid.update?.(); } catch (_) {}
+          try {
+            humanoid.update?.();
+          } catch (_) {}
         }
       }
 
@@ -2980,9 +3057,13 @@ class App {
       if (humanoid) {
         for (const name of poseNames) {
           let src = null;
-          try { src = humanoid.getRawBoneNode?.(name); } catch (_) {}
+          try {
+            src = humanoid.getRawBoneNode?.(name);
+          } catch (_) {}
           if (!src) {
-            try { src = humanoid.humanBones?.[name]?.node; } catch (_) {}
+            try {
+              src = humanoid.humanBones?.[name]?.node;
+            } catch (_) {}
           }
           if (!src) continue;
           if (src.scale) {
@@ -3010,7 +3091,9 @@ class App {
         s.node.position.copy(s.p);
         s.node.scale.copy(s.s);
       }
-      try { humanoid?.update?.(); } catch (_) {}
+      try {
+        humanoid?.update?.();
+      } catch (_) {}
       // Re-apply body shape on the restored pose (scales + curve)
       this._bodyShape?.apply();
 
@@ -3025,8 +3108,7 @@ class App {
       const inSize = outBuf.byteLength;
       // テクスチャ圧縮（軽量・バランス・常に圧縮・解像度低下）
       // ※ 以前の GLTFExporter 再出力は WebP を潰して肥大化させるため使わない
-      const needTex =
-        exportOpts.textureScale < 0.999 ||
+      const needTex = exportOpts.textureScale < 0.999 ||
         exportOpts.textureCompressMode === "always";
       let texStats = null;
       if (needTex) {
@@ -3064,7 +3146,8 @@ class App {
       const kb = (blob.size / 1024).toFixed(1);
       const inKb = (inSize / 1024).toFixed(1);
       const ratio = inSize > 0 ? ((blob.size / inSize) * 100).toFixed(0) : "?";
-      let msg = `保存: ${filename}_body.vrm (${kb} KB / 元 ${inKb} KB = ${ratio}%)`;
+      let msg =
+        `保存: ${filename}_body.vrm (${kb} KB / 元 ${inKb} KB = ${ratio}%)`;
       if (texStats && texStats.encoded != null) {
         msg += ` / 画像 ${texStats.encoded} 枚再エンコード`;
         if (texStats.savedBytes) {
@@ -3086,10 +3169,15 @@ class App {
    * GLB/VRM バッファを読み直し、テクスチャ縮小・（可能なら）Draco を適用して詰め直す。
    * 失敗時は例外を投げる（呼び出し側で元バッファを使う）。
    */
-  async _compressVrmBuffer(buffer, { draco = false, maxTextureSize = 2048 } = {}) {
+  async _compressVrmBuffer(
+    buffer,
+    { draco = false, maxTextureSize = 2048 } = {},
+  ) {
     // 再エクスポート: 一旦 GLTFLoader で読み、GLTFExporter で書き出す
     const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
-    const { GLTFExporter } = await import("three/addons/exporters/GLTFExporter.js");
+    const { GLTFExporter } = await import(
+      "three/addons/exporters/GLTFExporter.js"
+    );
     const loader = new GLTFLoader();
     const blob = new Blob([buffer], { type: "model/gltf-binary" });
     const url = URL.createObjectURL(blob);
@@ -3107,7 +3195,9 @@ class App {
         return { canvas: c, ctx: c.getContext("2d") };
       })();
       gltf.scene.traverse((o) => {
-        const mats = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+        const mats = o.material
+          ? (Array.isArray(o.material) ? o.material : [o.material])
+          : [];
         for (const mat of mats) {
           if (!mat) continue;
           for (const key of Object.keys(mat)) {
@@ -3153,7 +3243,10 @@ class App {
             neu.json.extensions[k] = orig.json.extensions[k];
           }
         }
-        const used = new Set([...(neu.json.extensionsUsed || []), ...(orig.json.extensionsUsed || [])]);
+        const used = new Set([
+          ...(neu.json.extensionsUsed || []),
+          ...(orig.json.extensionsUsed || []),
+        ]);
         neu.json.extensionsUsed = [...used];
         // 再パック
         const jsonText = JSON.stringify(neu.json);
@@ -3163,22 +3256,32 @@ class App {
         const binBytes = neu.bin ? new Uint8Array(neu.bin) : new Uint8Array(0);
         const bpad = binBytes.length ? (4 - (binBytes.length % 4)) % 4 : 0;
         const binChunkLen = binBytes.length + bpad;
-        const total = 12 + 8 + jsonChunkLen + (binBytes.length ? 8 + binChunkLen : 0);
+        const total = 12 + 8 + jsonChunkLen +
+          (binBytes.length ? 8 + binChunkLen : 0);
         const out = new ArrayBuffer(total);
         const dv = new DataView(out);
         const ua = new Uint8Array(out);
         let o = 0;
-        dv.setUint32(o, 0x46546c67, true); o += 4;
-        dv.setUint32(o, 2, true); o += 4;
-        dv.setUint32(o, total, true); o += 4;
-        dv.setUint32(o, jsonChunkLen, true); o += 4;
-        dv.setUint32(o, 0x4e4f534a, true); o += 4;
-        ua.set(jsonBytes, o); o += jsonBytes.length;
+        dv.setUint32(o, 0x46546c67, true);
+        o += 4;
+        dv.setUint32(o, 2, true);
+        o += 4;
+        dv.setUint32(o, total, true);
+        o += 4;
+        dv.setUint32(o, jsonChunkLen, true);
+        o += 4;
+        dv.setUint32(o, 0x4e4f534a, true);
+        o += 4;
+        ua.set(jsonBytes, o);
+        o += jsonBytes.length;
         for (let i = 0; i < pad; i++) ua[o++] = 0x20;
         if (binBytes.length) {
-          dv.setUint32(o, binChunkLen, true); o += 4;
-          dv.setUint32(o, 0x004e4942, true); o += 4;
-          ua.set(binBytes, o); o += binBytes.length;
+          dv.setUint32(o, binChunkLen, true);
+          o += 4;
+          dv.setUint32(o, 0x004e4942, true);
+          o += 4;
+          ua.set(binBytes, o);
+          o += binBytes.length;
           for (let i = 0; i < bpad; i++) ua[o++] = 0;
         }
         return out;
@@ -3192,8 +3295,6 @@ class App {
     void draco;
     return exported;
   }
-
-
 }
 
 // アプリ起動
