@@ -239,6 +239,37 @@
               </div>
               <input type="range" class="form-range form-range-sm" id="p_chestDepth" min="0" max="200" value="100">
             </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="upperChest">上胸</div>
+            <div class="mb-2 body-param" data-body-key="upperChestLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperChestLength" class="mb-0 text-truncate" title="上胸の長さ">上胸の長さ</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperChestLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperChestLength" title="上胸の長さをリセット" aria-label="上胸の長さをリセット"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperChestLength" min="70" max="140" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="upperChestWidth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperChestWidth" class="mb-0 text-truncate" title="上胸の横幅">上胸の横幅</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperChestWidth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperChestWidth" title="上胸の横幅をリセット" aria-label="上胸の横幅をリセット"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperChestWidth" min="50" max="170" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="upperChestDepth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperChestDepth" class="mb-0 text-truncate" title="上胸の厚み">上胸の厚み</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperChestDepth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperChestDepth" title="上胸の厚みをリセット" aria-label="上胸の厚みをリセット"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperChestDepth" min="0" max="200" value="100">
+            </div>
             <div class="small text-secondary mb-1 mt-2" data-body-section="waist">腰</div>
             <div class="mb-2 body-param" data-body-key="waistLength">
               <div class="d-flex justify-content-between align-items-center small gap-1">
@@ -260,7 +291,17 @@
               </div>
               <input type="range" class="form-range form-range-sm" id="p_waistSize" min="50" max="170" value="100">
             </div>
-            <div class="mb-2 body-param" data-body-key="hipWidth">
+                        <div class="mb-2 body-param" data-body-key="hipLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_hipLength" class="mb-0 text-truncate" title="骨盤の高さ">骨盤の高さ</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_hipLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="hipLength" title="骨盤の高さをリセット" aria-label="骨盤の高さをリセット"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_hipLength" min="60" max="150" value="100">
+            </div>
+<div class="mb-2 body-param" data-body-key="hipWidth">
               <div class="d-flex justify-content-between align-items-center small gap-1">
                 <label for="p_hipWidth" class="mb-0 text-truncate" title="腰幅">腰幅</label>
                 <div class="d-flex align-items-center gap-1 flex-shrink-0">
@@ -1303,11 +1344,20 @@
   "body.chestWidth.reset": "胸の横幅をリセット",
   "body.chestDepth": "胸の厚み",
   "body.chestDepth.reset": "胸の厚みをリセット",
+  "body.section.upperChest": "上胸",
+  "body.upperChestLength": "上胸の長さ",
+  "body.upperChestLength.reset": "上胸の長さをリセット",
+  "body.upperChestWidth": "上胸の横幅",
+  "body.upperChestWidth.reset": "上胸の横幅をリセット",
+  "body.upperChestDepth": "上胸の厚み",
+  "body.upperChestDepth.reset": "上胸の厚みをリセット",
   "body.waistLength": "腰の長さ",
   "body.waistLength.reset": "腰の長さをリセット",
   "body.waistSize": "ウエスト",
   "body.waistSize.reset": "ウエストをリセット",
-  "body.hipWidth": "腰幅",
+    "body.hipLength": "骨盤の高さ",
+  "body.hipLength.reset": "骨盤の高さをリセット",
+"body.hipWidth": "腰幅",
   "body.hipWidth.reset": "腰幅をリセット",
   "body.hipDepth": "腰の厚み",
   "body.hipDepth.reset": "腰の厚みをリセット",

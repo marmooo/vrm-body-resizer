@@ -129,8 +129,12 @@ export const DEFAULTS = {
   chestLength: 1,
   chestWidth: 1,
   chestDepth: 1,
+  upperChestLength: 1,
+  upperChestWidth: 1,
+  upperChestDepth: 1,
   waistLength: 1,
   waistSize: 1,
+  hipLength: 1,
   hipWidth: 1,
   hipDepth: 1,
   spineCurve: 0,
@@ -179,8 +183,12 @@ export const SLIDER_META = {
   chestLength: { min: 70, max: 140, label: "胸の長さ", section: "胸" },
   chestWidth: { min: 50, max: 170, label: "胸の横幅", section: "胸" },
   chestDepth: { min: 0, max: 200, label: "胸の厚み", section: "胸" },
+  upperChestLength: { min: 70, max: 140, label: "上胸の長さ", section: "上胸" },
+  upperChestWidth: { min: 50, max: 170, label: "上胸の横幅", section: "上胸" },
+  upperChestDepth: { min: 0, max: 200, label: "上胸の厚み", section: "上胸" },
   waistLength: { min: 70, max: 140, label: "腰の長さ", section: "腰" },
   waistSize: { min: 50, max: 170, label: "ウエスト", section: "腰" },
+  hipLength: { min: 60, max: 150, label: "骨盤の高さ", section: "腰" },
   hipWidth: { min: 60, max: 160, label: "腰幅", section: "腰" },
   hipDepth: { min: 50, max: 180, label: "腰の厚み", section: "腰" },
   spineCurve: {
@@ -591,14 +599,14 @@ export class BodyShapeController {
       }
     }
 
-    this._scaleBoneRole("hips", p.hipWidth, 1, p.hipDepth);
+    this._scaleBoneLTT("hips", p.hipLength, p.hipWidth, p.hipDepth);
     this._scaleBoneLTT("spine", p.waistLength, p.waistSize, p.hipDepth);
     this._scaleBoneLTT("chest", p.chestLength, p.chestWidth, p.chestDepth);
     this._scaleBoneLTT(
       "upperChest",
-      p.chestLength,
-      p.chestWidth * 1.02,
-      p.chestDepth * 1.05,
+      p.upperChestLength,
+      p.upperChestWidth,
+      p.upperChestDepth,
     );
     this._scaleBoneLTT("neck", p.neckLength, p.neckThickness, p.neckThickness);
     this._scaleBoneRole("head", p.headWidth, p.headLength, p.headWidth);
@@ -780,6 +788,8 @@ export class BodyShapeController {
     this.params.waistSize = 1 + t * 0.5;
     this.params.chestWidth = 1 + t * 0.22;
     this.params.chestDepth = 1 + t * 0.18;
+    this.params.upperChestWidth = 1 + t * 0.22;
+    this.params.upperChestDepth = 1 + t * 0.18;
     this.params.hipWidth = 1 + t * 0.28;
     this.params.hipDepth = 1 + t * 0.22;
     this.params.upperArmThickness = 1 + t * 0.4;

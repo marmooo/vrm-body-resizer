@@ -239,6 +239,37 @@
               </div>
               <input type="range" class="form-range form-range-sm" id="p_chestDepth" min="0" max="200" value="100">
             </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="upperChest">Upper chest</div>
+            <div class="mb-2 body-param" data-body-key="upperChestLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperChestLength" class="mb-0 text-truncate" title="Upper chest length">Upper chest length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperChestLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperChestLength" title="Reset upper chest length" aria-label="Reset upper chest length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperChestLength" min="70" max="140" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="upperChestWidth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperChestWidth" class="mb-0 text-truncate" title="Upper chest width">Upper chest width</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperChestWidth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperChestWidth" title="Reset upper chest width" aria-label="Reset upper chest width"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperChestWidth" min="50" max="170" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="upperChestDepth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperChestDepth" class="mb-0 text-truncate" title="Upper chest thickness">Upper chest thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperChestDepth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperChestDepth" title="Reset upper chest thickness" aria-label="Reset upper chest thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperChestDepth" min="0" max="200" value="100">
+            </div>
             <div class="small text-secondary mb-1 mt-2" data-body-section="waist">Waist / Hips</div>
             <div class="mb-2 body-param" data-body-key="waistLength">
               <div class="d-flex justify-content-between align-items-center small gap-1">
@@ -260,7 +291,17 @@
               </div>
               <input type="range" class="form-range form-range-sm" id="p_waistSize" min="50" max="170" value="100">
             </div>
-            <div class="mb-2 body-param" data-body-key="hipWidth">
+                        <div class="mb-2 body-param" data-body-key="hipLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_hipLength" class="mb-0 text-truncate" title="Pelvis height">Pelvis height</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_hipLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="hipLength" title="Reset pelvis height" aria-label="Reset pelvis height"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_hipLength" min="60" max="150" value="100">
+            </div>
+<div class="mb-2 body-param" data-body-key="hipWidth">
               <div class="d-flex justify-content-between align-items-center small gap-1">
                 <label for="p_hipWidth" class="mb-0 text-truncate" title="Hip width">Hip width</label>
                 <div class="d-flex align-items-center gap-1 flex-shrink-0">
@@ -1302,11 +1343,20 @@
   "body.chestWidth.reset": "Reset chest width",
   "body.chestDepth": "Chest thickness",
   "body.chestDepth.reset": "Reset chest thickness",
+  "body.section.upperChest": "Upper chest",
+  "body.upperChestLength": "Upper chest length",
+  "body.upperChestLength.reset": "Reset upper chest length",
+  "body.upperChestWidth": "Upper chest width",
+  "body.upperChestWidth.reset": "Reset upper chest width",
+  "body.upperChestDepth": "Upper chest thickness",
+  "body.upperChestDepth.reset": "Reset upper chest thickness",
   "body.waistLength": "Waist length",
   "body.waistLength.reset": "Reset waist length",
   "body.waistSize": "Waist size",
   "body.waistSize.reset": "Reset waist size",
-  "body.hipWidth": "Hip width",
+    "body.hipLength": "Pelvis height",
+  "body.hipLength.reset": "Reset pelvis height",
+"body.hipWidth": "Hip width",
   "body.hipWidth.reset": "Reset hip width",
   "body.hipDepth": "Hip thickness",
   "body.hipDepth.reset": "Reset hip thickness",
