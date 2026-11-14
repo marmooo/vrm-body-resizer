@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Decide the theme before the page paints (avoids flicker). Saved setting takes precedence over the OS setting.
+      (function() {
+        let saved = null;
+        try { saved = localStorage.getItem("darkMode"); } catch (e) { /* keep working where storage is unavailable */ }
+        const prefersDark = globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = saved || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-bs-theme", theme);
+      })();
+
+      function toggleDarkMode() {
+        const html = document.documentElement;
+        const newTheme = html.getAttribute("data-bs-theme") === "dark"
+          ? "light"
+          : "dark";
+        html.setAttribute("data-bs-theme", newTheme);
+        try { localStorage.setItem("darkMode", newTheme); } catch (e) { /* switching still works even if saving fails */ }
+      }
+      // 言語切替: /<言語コード>/ へ移動する。言語を増やすときは <select id="lang"> に option を足し、/<言語コード>/index.html を用意する。
+      function changeLang() {
+        const langObj = document.getElementById("lang");
+        const lang = langObj.options[langObj.selectedIndex].value;
+        location.href = `/vrm-body-resizer/${lang}/`;
+      }
+    </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-F2179JXDYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-F2179JXDYY');
+    </script>
+    <title>VRM Body Resizer</title>
+    <link rel="alternate" hreflang="ja" href="/vrm-body-resizer/ja/" />
+    <link rel="alternate" hreflang="en" href="/vrm-body-resizer/en/" />
+    <link rel="alternate" hreflang="x-default" href="/vrm-body-resizer/" />
+
+    <!-- 読み込みの高速化: CDNへ先に接続し、ES Module の依存チェーンを並列に先読みする -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <!-- importmap は、modulepreload / type="module" より前に置くこと(後だと "three" を解決できず Uncaught TypeError になる) -->
+    <!-- three.js & three-vrm via CDN (ESM importmap) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.min.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/",
+        "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"
+      }
+    }
+    </script>
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.min.js" />
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js" />
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/loaders/GLTFLoader.js" />
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/controls/OrbitControls.js" />
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/utils/BufferGeometryUtils.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/app.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/scene.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/vrm-loader.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/ui.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/bone-control.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/bone-sphere.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/exporter.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/bone-hierarchy.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/bone-limits.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/bone-random.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/bone-collision.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/light-panel.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/light-gizmo.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/material-panel.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/controls.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/i18n.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/model-picker.js" />
+    <link rel="modulepreload" href="/vrm-body-resizer/js/gltf-loader.js" />
+
+    <!-- Bootstrap 5 -->
+    <link class="drop-inline-css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link class="inline-css" href="/vrm-body-resizer/css/style.css" rel="stylesheet" />
+    <script data-ad-client="ca-pub-6459713332128733" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  </head>
+  <body class="bg-body text-body overflow-hidden" data-animation-list="/vrm-body-resizer/animations/list.txt" data-vrm-list="/vrm-body-resizer/vrm/list.txt">
+    <div id="app" class="position-fixed top-0 start-0 w-100 d-flex flex-column overflow-hidden" style="height: 100dvh;">
+
+    <!-- Navbar -->
+    <nav class="navbar bg-body-tertiary border-bottom px-3">
+      <a class="navbar-brand" href="/vrm-body-resizer/">
+        <img class="favicon" alt="" src="/vrm-body-resizer/favicon/favicon.svg" width="32" height="32">
+        VRM Body Resizer
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <button id="btn-load-vrm" class="btn btn-outline-body btn-sm">
+          <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#folder2-open"/></svg>Load VRM
+        </button>
+        <input type="file" id="input-vrm" accept=".vrm" multiple class="d-none" />
+        <select id="lang" class="form-select form-select-sm w-auto" title="Language" aria-label="Language" onchange="changeLang()">
+          <option value="ja">日本語</option>
+          <option value="en" selected>English</option>
+        </select>
+        <button id="btn-theme-toggle" type="button" class="btn btn-outline-body btn-sm" onclick="toggleDarkMode()" title="Toggle dark / light mode" aria-label="Toggle dark mode">
+          <svg class="theme-icon-dark" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#sun-fill"/></svg><svg class="theme-icon-light" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#moon-stars-fill"/></svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main layout -->
+    <div class="d-flex flex-grow-1 overflow-hidden">
+
+      <!-- Left Panel: Body Shape + Bone List -->
+      <div id="panel-left" class="bg-body border-end border-secondary d-flex flex-column" style="width:240px; min-width:200px;">
+        <div class="p-2 border-bottom border-secondary d-flex align-items-center justify-content-between">
+          <span class="small fw-bold text-secondary">
+            <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#person-arms-up"/></svg>Body
+          </span>
+          <div class="d-flex gap-1">
+            <button type="button" id="btn-body-reset" class="btn btn-sm btn-outline-secondary" title="Reset all body shape" aria-label="Reset all body shape">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="body-shape-panel" class="flex-grow-1 overflow-auto p-2">
+            <div class="small text-secondary mb-1 mt-1" data-body-section="overall">Overall size</div>
+            <div class="mb-2 body-param" data-body-key="height">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_height" class="mb-0 text-truncate" title="Height">Height</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_height">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="height" title="Reset height" aria-label="Reset height"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_height" min="60" max="150" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="build">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_build" class="mb-0 text-truncate" title="Overall thickness">Overall thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_build">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="build" title="Reset overall thickness" aria-label="Reset overall thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_build" min="60" max="160" value="100">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="type">Body type</div>
+            <div class="mb-2 body-param" data-body-key="bodyType">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_bodyType" class="mb-0 text-truncate" title="Slim ↔ Plump">Slim ↔ Plump</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_bodyType">0</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="bodyType" title="Reset body type" aria-label="Reset body type"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_bodyType" min="-100" max="100" value="0">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="head">Head</div>
+            <div class="mb-2 body-param" data-body-key="headWidth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_headWidth" class="mb-0 text-truncate" title="Head width">Head width</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_headWidth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="headWidth" title="Reset head width" aria-label="Reset head width"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_headWidth" min="60" max="150" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="headLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_headLength" class="mb-0 text-truncate" title="Head length">Head length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_headLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="headLength" title="Reset head length" aria-label="Reset head length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_headLength" min="60" max="150" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="neckLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_neckLength" class="mb-0 text-truncate" title="Neck length">Neck length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_neckLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="neckLength" title="Reset neck length" aria-label="Reset neck length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_neckLength" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="neckThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_neckThickness" class="mb-0 text-truncate" title="Neck thickness">Neck thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_neckThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="neckThickness" title="Reset neck thickness" aria-label="Reset neck thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_neckThickness" min="50" max="180" value="100">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="shoulder">Shoulders</div>
+            <div class="mb-2 body-param" data-body-key="shoulderWidth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_shoulderWidth" class="mb-0 text-truncate" title="Shoulder width">Shoulder width</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_shoulderWidth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="shoulderWidth" title="Reset shoulder width" aria-label="Reset shoulder width"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_shoulderWidth" min="60" max="170" value="100">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="chest">Chest</div>
+            <div class="mb-2 body-param" data-body-key="chestLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_chestLength" class="mb-0 text-truncate" title="Chest length">Chest length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_chestLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="chestLength" title="Reset chest length" aria-label="Reset chest length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_chestLength" min="70" max="140" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="chestWidth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_chestWidth" class="mb-0 text-truncate" title="Chest width">Chest width</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_chestWidth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="chestWidth" title="Reset chest width" aria-label="Reset chest width"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_chestWidth" min="50" max="170" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="chestDepth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_chestDepth" class="mb-0 text-truncate" title="Chest thickness">Chest thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_chestDepth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="chestDepth" title="Reset chest thickness" aria-label="Reset chest thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_chestDepth" min="0" max="200" value="100">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="waist">Waist / Hips</div>
+            <div class="mb-2 body-param" data-body-key="waistLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_waistLength" class="mb-0 text-truncate" title="Waist length">Waist length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_waistLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="waistLength" title="Reset waist length" aria-label="Reset waist length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_waistLength" min="70" max="140" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="waistSize">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_waistSize" class="mb-0 text-truncate" title="Waist size">Waist size</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_waistSize">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="waistSize" title="Reset waist size" aria-label="Reset waist size"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_waistSize" min="50" max="170" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="hipWidth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_hipWidth" class="mb-0 text-truncate" title="Hip width">Hip width</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_hipWidth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="hipWidth" title="Reset hip width" aria-label="Reset hip width"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_hipWidth" min="60" max="160" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="hipDepth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_hipDepth" class="mb-0 text-truncate" title="Hip thickness">Hip thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_hipDepth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="hipDepth" title="Reset hip thickness" aria-label="Reset hip thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_hipDepth" min="50" max="180" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="spineCurve">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_spineCurve" class="mb-0 text-truncate" title="Spine curve">Spine curve</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_spineCurve">0</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="spineCurve" title="Reset spine curve" aria-label="Reset spine curve"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_spineCurve" min="-50" max="50" value="0">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="arm">Arms</div>
+            <div class="mb-2 body-param" data-body-key="upperArmLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperArmLength" class="mb-0 text-truncate" title="Upper arm length">Upper arm length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperArmLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperArmLength" title="Reset upper arm length" aria-label="Reset upper arm length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperArmLength" min="60" max="170" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="upperArmThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperArmThickness" class="mb-0 text-truncate" title="Upper arm thickness">Upper arm thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperArmThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperArmThickness" title="Reset upper arm thickness" aria-label="Reset upper arm thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperArmThickness" min="50" max="200" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="lowerArmLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_lowerArmLength" class="mb-0 text-truncate" title="Lower arm length">Lower arm length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_lowerArmLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="lowerArmLength" title="Reset lower arm length" aria-label="Reset lower arm length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_lowerArmLength" min="60" max="170" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="lowerArmThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_lowerArmThickness" class="mb-0 text-truncate" title="Lower arm thickness">Lower arm thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_lowerArmThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="lowerArmThickness" title="Reset lower arm thickness" aria-label="Reset lower arm thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_lowerArmThickness" min="50" max="200" value="100">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="hand">Hands</div>
+            <div class="mb-2 body-param" data-body-key="handLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_handLength" class="mb-0 text-truncate" title="Hand length">Hand length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_handLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="handLength" title="Reset hand length" aria-label="Reset hand length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_handLength" min="50" max="180" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="handWidth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_handWidth" class="mb-0 text-truncate" title="Hand width">Hand width</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_handWidth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="handWidth" title="Reset hand width" aria-label="Reset hand width"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_handWidth" min="50" max="180" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="handThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_handThickness" class="mb-0 text-truncate" title="Hand thickness">Hand thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_handThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="handThickness" title="Reset hand thickness" aria-label="Reset hand thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_handThickness" min="50" max="180" value="100">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="finger">Fingers</div>
+            <div class="mb-2 body-param" data-body-key="thumbLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_thumbLength" class="mb-0 text-truncate" title="Thumb: length">Thumb: length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_thumbLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="thumbLength" title="Reset thumb length" aria-label="Reset thumb length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_thumbLength" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="thumbThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_thumbThickness" class="mb-0 text-truncate" title="Thumb: thickness">Thumb: thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_thumbThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="thumbThickness" title="Reset thumb thickness" aria-label="Reset thumb thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_thumbThickness" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="indexLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_indexLength" class="mb-0 text-truncate" title="Index: length">Index: length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_indexLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="indexLength" title="Reset index length" aria-label="Reset index length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_indexLength" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="indexThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_indexThickness" class="mb-0 text-truncate" title="Index: thickness">Index: thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_indexThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="indexThickness" title="Reset index thickness" aria-label="Reset index thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_indexThickness" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="middleLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_middleLength" class="mb-0 text-truncate" title="Middle: length">Middle: length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_middleLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="middleLength" title="Reset middle length" aria-label="Reset middle length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_middleLength" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="middleThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_middleThickness" class="mb-0 text-truncate" title="Middle: thickness">Middle: thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_middleThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="middleThickness" title="Reset middle thickness" aria-label="Reset middle thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_middleThickness" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="ringLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_ringLength" class="mb-0 text-truncate" title="Ring: length">Ring: length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_ringLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="ringLength" title="Reset ring length" aria-label="Reset ring length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_ringLength" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="ringThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_ringThickness" class="mb-0 text-truncate" title="Ring: thickness">Ring: thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_ringThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="ringThickness" title="Reset ring thickness" aria-label="Reset ring thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_ringThickness" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="littleLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_littleLength" class="mb-0 text-truncate" title="Little: length">Little: length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_littleLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="littleLength" title="Reset little length" aria-label="Reset little length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_littleLength" min="40" max="220" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="littleThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_littleThickness" class="mb-0 text-truncate" title="Little: thickness">Little: thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_littleThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="littleThickness" title="Reset little thickness" aria-label="Reset little thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_littleThickness" min="40" max="220" value="100">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="leg">Legs</div>
+            <div class="mb-2 body-param" data-body-key="upperLegLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperLegLength" class="mb-0 text-truncate" title="Thigh length">Thigh length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperLegLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperLegLength" title="Reset thigh length" aria-label="Reset thigh length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperLegLength" min="60" max="150" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="upperLegThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_upperLegThickness" class="mb-0 text-truncate" title="Thigh thickness">Thigh thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_upperLegThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="upperLegThickness" title="Reset thigh thickness" aria-label="Reset thigh thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_upperLegThickness" min="50" max="200" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="lowerLegLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_lowerLegLength" class="mb-0 text-truncate" title="Shin length">Shin length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_lowerLegLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="lowerLegLength" title="Reset shin length" aria-label="Reset shin length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_lowerLegLength" min="60" max="150" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="lowerLegThickness">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_lowerLegThickness" class="mb-0 text-truncate" title="Shin thickness">Shin thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_lowerLegThickness">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="lowerLegThickness" title="Reset shin thickness" aria-label="Reset shin thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_lowerLegThickness" min="50" max="200" value="100">
+            </div>
+            <div class="small text-secondary mb-1 mt-2" data-body-section="foot">Feet</div>
+            <div class="mb-2 body-param" data-body-key="footLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_footLength" class="mb-0 text-truncate" title="Foot length">Foot length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_footLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="footLength" title="Reset foot length" aria-label="Reset foot length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_footLength" min="50" max="180" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="footWidth">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_footWidth" class="mb-0 text-truncate" title="Foot width">Foot width</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_footWidth">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="footWidth" title="Reset foot width" aria-label="Reset foot width"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_footWidth" min="50" max="180" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="footHeight">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_footHeight" class="mb-0 text-truncate" title="Instep thickness">Instep thickness</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_footHeight">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="footHeight" title="Reset instep thickness" aria-label="Reset instep thickness"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_footHeight" min="50" max="180" value="100">
+            </div>
+            <div class="mb-2 body-param" data-body-key="toesLength">
+              <div class="d-flex justify-content-between align-items-center small gap-1">
+                <label for="p_toesLength" class="mb-0 text-truncate" title="Toes length">Toes length</label>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <span id="v_toesLength">1.00×</span>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 body-slider-reset" data-body-key="toesLength" title="Reset toes length" aria-label="Reset toes length"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg></button>
+                </div>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="p_toesLength" min="0" max="200" value="100">
+            </div>
+</div>
+      </div>
+
+<!-- Center: 3D Canvas Area -->
+      <div id="canvas-wrapper" class="flex-grow-1 d-flex flex-column position-relative">
+        <!-- Drag & drop overlay -->
+        <div id="drop-overlay" class="d-none" aria-hidden="true">
+          <div class="drop-overlay-box"><svg class="me-2" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#box-arrow-in-down"/></svg>Drop here<div class="small mt-1">.vrm (add model) / .glb, .fbx, .vrma (pose) / .vrmposer.json (project) / image, video (background)</div></div>
+        </div>
+
+        <!-- Loading overlay -->
+        <div id="loading-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center d-none" style="z-index:10; background:rgba(0,0,0,0.7);">
+          <div class="text-center">
+            <div class="spinner-border text-body mb-2" role="status"></div>
+            <div class="text-body small">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Canvas -->
+        <canvas id="three-canvas" class="flex-grow-1 d-block w-100"></canvas>
+
+        <!-- Body metrics overlay (top-left of canvas) -->
+        <div id="body-metrics" class="position-absolute top-0 start-0 m-2 small text-body">
+          <div class="d-flex justify-content-between gap-3"><span data-body-metric-label="height">Height</span><span id="metric-height" class="text-body-secondary">—</span></div>
+          <div class="d-flex justify-content-between gap-3"><span data-body-metric-label="sitting">Sitting height</span><span id="metric-sitting" class="text-body-secondary">—</span></div>
+          <div class="d-flex justify-content-between gap-3"><span data-body-metric-label="heads">Head ratio</span><span id="metric-heads" class="text-body-secondary">—</span></div>
+          <div class="d-flex justify-content-between gap-3"><span data-body-metric-label="bwh">BWH</span><span id="metric-bwh" class="text-body-secondary">—</span></div>
+        </div>
+
+        <!-- View Direction Buttons (bottom center of canvas) -->
+        <div id="axis-buttons" class="position-absolute bottom-0 start-50 translate-middle-x mb-3 d-flex gap-2 align-items-center">
+          <span class="text-secondary small me-1">Camera:</span>
+          <button id="btn-view-front" class="btn btn-sm btn-outline-body"     title="View from the front">Front (F)</button>
+          <button id="btn-view-back"  class="btn btn-sm btn-outline-body"     title="View from the back">Back (B)</button>
+          <button id="btn-view-right" class="btn btn-sm btn-outline-danger"   title="View from the right">Right (R)</button>
+          <button id="btn-view-left"  class="btn btn-sm btn-outline-danger"   title="View from the left">Left (L)</button>
+          <button id="btn-view-top"   class="btn btn-sm btn-outline-success"  title="View from above">Top (T)</button>
+        </div>
+
+        <!-- Selected bone hint -->
+        <div id="bone-hint" class="position-absolute top-0 start-50 translate-middle-x mt-2 badge bg-secondary d-none"></div>
+      </div>
+
+      <!-- Right Panel: Bone Controls -->
+      <div id="panel-right" class="bg-body border-start border-secondary d-flex flex-column" style="width:240px; min-width:200px;">
+        <div class="p-2 border-bottom border-secondary">
+          <div class="btn-group btn-group-sm w-100" role="group" aria-label="Switch right panel">
+            <input type="radio" class="btn-check" name="right-panel-tab" id="tab-model" autocomplete="off">
+            <label class="btn btn-outline-primary" for="tab-model" title="Export">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#download"/></svg>
+            </label>
+            <input type="radio" class="btn-check" name="right-panel-tab" id="tab-bone" autocomplete="off" checked>
+            <label class="btn btn-outline-primary" for="tab-bone" title="ボーン">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#person-walking"/></svg>
+            </label>
+            <input type="radio" class="btn-check" name="right-panel-tab" id="tab-expression" autocomplete="off">
+            <label class="btn btn-outline-primary" for="tab-expression" title="Expressions">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#emoji-smile"/></svg>
+            </label>
+            <input type="radio" class="btn-check" name="right-panel-tab" id="tab-material" autocomplete="off">
+            <label class="btn btn-outline-primary" for="tab-material" title="Materials">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#palette2"/></svg>
+            </label>
+            <input type="radio" class="btn-check" name="right-panel-tab" id="tab-scene" autocomplete="off">
+            <label class="btn btn-outline-primary" for="tab-scene" title="Background & lights">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#image"/></svg>
+            </label>
+          </div>
+        </div>
+
+        <!-- Export tab -->
+        <div id="panel-tab-model" class="d-none flex-column flex-grow-1 overflow-hidden">
+          <div class="d-none" aria-hidden="true">
+            <div id="active-model-name"></div>
+            <button id="btn-model-add" type="button"></button>
+          </div>
+
+          <div class="flex-grow-1 overflow-auto p-2">
+            <div class="small fw-bold text-secondary mb-2">Export VRM</div>
+            <div class="small text-secondary mb-1">Options</div>
+
+            <div class="mb-2">
+              <div class="d-flex justify-content-between small">
+                <label for="exportTexScale">Texture resolution</label>
+                <span id="v_exportTexScale">100%</span>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="exportTexScale" min="25" max="100" step="5" value="100">
+            </div>
+
+            <div class="small text-secondary mb-1">Texture compression</div>
+            <div class="btn-group w-100 mb-2" role="group" id="exportCompressModeToggle">
+              <button type="button" data-mode="whenNeeded" class="btn btn-sm btn-outline-secondary active" title="Keep original if resolution is 100%">When needed</button>
+              <button type="button" data-mode="always" class="btn btn-sm btn-outline-secondary" title="Re-encode all textures">Always</button>
+            </div>
+
+            <div class="small text-secondary mb-1">Format</div>
+            <div class="btn-group w-100 mb-2" role="group" id="exportTexFormatToggle">
+              <button type="button" data-format="webp" class="btn btn-sm btn-outline-secondary active">WebP</button>
+              <button type="button" data-format="png-jpeg" class="btn btn-sm btn-outline-secondary">PNG/JPEG</button>
+            </div>
+
+            <div class="mb-2">
+              <div class="d-flex justify-content-between small">
+                <label for="exportTexQuality">Quality</label>
+                <span id="v_exportTexQuality">92</span>
+              </div>
+              <input type="range" class="form-range form-range-sm" id="exportTexQuality" min="50" max="100" step="1" value="92">
+            </div>
+
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="exportDraco">
+              <label class="form-check-label small" for="exportDraco">Draco compression</label>
+            </div>
+
+            <div class="btn-group w-100 mb-2" role="group" id="exportPresetToggle">
+              <button type="button" data-preset="quality" class="btn btn-sm btn-outline-secondary active">Quality</button>
+              <button type="button" data-preset="balanced" class="btn btn-sm btn-outline-secondary">Balanced</button>
+              <button type="button" data-preset="light" class="btn btn-sm btn-outline-secondary">Light</button>
+            </div>
+            <div class="d-grid gap-2">
+              <button id="btn-export-model" type="button" class="btn btn-sm btn-primary" disabled>
+                <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#download"/></svg>Save body
+              </button>
+            </div>
+            <div id="export-status" class="small text-secondary mt-2"></div>
+          </div>
+
+          <!-- 互換のため残す（非表示）: 旧マルチモデル / オブジェクト UI の参照先 -->
+          <div class="d-none">
+            <div id="model-list"></div>
+            <div id="object-list"></div>
+            <div id="object-controls"></div>
+            <button id="btn-object-add"></button>
+            <input type="file" id="input-object" />
+            <button id="btn-toggle-animation"></button>
+
+            <button id="btn-save-vrma" class="d-none"></button>
+            <button id="btn-random-animation" class="d-none"></button>
+            <select id="select-random-animation" class="d-none"></select>
+
+            <button id="btn-random-pose"></button>
+            <button id="btn-copy-pose"></button>
+            <button id="btn-paste-pose"></button>
+            <div id="bone-list-container" class="d-none"></div>
+            <button id="bone-all-reset" class="d-none" type="button"></button>
+            <input type="file" id="input-pose" accept=".glb,.fbx,.vrma" class="d-none" />
+            <input type="file" id="input-project" accept=".json,.vrmposer.json" class="d-none" />
+            <button id="btn-save-project" class="d-none"></button>
+            <button id="btn-load-project" class="d-none"></button>
+            <button id="btn-save-pose" class="d-none"></button>
+            <button id="btn-load-pose" class="d-none"></button>
+          </div>
+        </div>
+
+<!-- Bones tab -->
+        <div id="panel-tab-bone" class="d-flex flex-column flex-grow-1 overflow-hidden">
+        <div class="p-2 border-bottom border-secondary">
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="small fw-bold text-secondary">
+              <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#sliders"/></svg>Bone rotation
+            </span>
+            <button type="button" class="btn btn-sm btn-link text-secondary p-0"
+                    data-bs-toggle="collapse" data-bs-target="#bone-controls-help"
+                    aria-expanded="false" aria-controls="bone-controls-help"
+                    title="Show controls help">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#question-circle"/></svg>
+            </button>
+          </div>
+
+          <div class="btn-group btn-group-sm w-100 mt-2" role="group" aria-label="Manipulation mode">
+            <input type="radio" class="btn-check" name="manip-mode" id="manip-mode-sphere" autocomplete="off" checked>
+            <label class="btn btn-outline-primary" for="manip-mode-sphere">
+              <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#circle"/></svg>Sphere
+            </label>
+            <input type="radio" class="btn-check" name="manip-mode" id="manip-mode-gizmo" autocomplete="off">
+            <label class="btn btn-outline-primary" for="manip-mode-gizmo">
+              <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#bounding-box-circles"/></svg>Gizmo
+            </label>
+          </div>
+          <div class="form-check form-switch mt-2 mb-0">
+            <input class="form-check-input" type="checkbox" role="switch" id="bone-show-limits" checked>
+            <label class="form-check-label small" for="bone-show-limits">Show out-of-range in red</label>
+          </div>
+
+
+          <div class="collapse mt-2" id="bone-controls-help">
+            <div id="bone-controls-help-body" class="small bone-help-scroll">
+              <div class="fw-bold text-body mb-1"><svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#mouse"/></svg>PC (mouse)</div>
+              <ul class="mb-2 ps-3">
+                <li>Left-drag the model (outside sphere/gizmo): move the model</li>
+                <li>Left-drag (outside model, sphere and gizmo): rotate camera</li>
+                <li>Right-drag (outside sphere/gizmo): pan camera</li>
+                <li>Hold left button (inside sphere, or on a gizmo ring): rotate bone</li>
+                <li>Hold right button (inside sphere/gizmo): move bone</li>
+                <li>Right-click (inside sphere/gizmo, no movement): switch to parent bone</li>
+                <li>Left-click (yellow center dot): toggle control target</li>
+                <li>Hold left button (on another avatar): select that avatar, then drag to move it</li>
+              </ul>
+              <div class="fw-bold text-body mb-1"><svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#tablet"/></svg>Tablet (touch)</div>
+              <ul class="mb-0 ps-3">
+                <li>One-finger drag (on the model): move the model</li>
+                <li>One-finger drag (outside model, sphere and gizmo): rotate camera</li>
+                <li>Two-finger drag (outside sphere/gizmo): pan camera</li>
+                <li>One-finger hold (inside sphere, or on a gizmo ring): rotate bone</li>
+                <li>Long press (inside sphere/gizmo): switch to parent bone</li>
+                <li>Two-finger drag (inside sphere/gizmo): move bone</li>
+                <li>One-finger tap (yellow center dot): toggle control target</li>
+                <li>Long press (on another avatar): select that avatar, then drag to move it</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div id="bone-controls" class="flex-grow-1 overflow-auto p-2">
+          <div class="text-secondary small p-2">Please select a bone</div>
+        </div>
+        </div>
+
+        <!-- Expressions tab -->
+        <div id="panel-tab-expression" class="d-none flex-column flex-grow-1 overflow-hidden">
+          <div class="p-2 border-bottom border-secondary d-flex align-items-center justify-content-between">
+            <span class="small fw-bold text-secondary">
+              <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#emoji-smile"/></svg>Expressions
+            </span>
+            <div class="d-flex gap-1">
+            <button type="button" id="btn-random-expressions" class="btn btn-sm btn-outline-secondary" title="Randomize expressions">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#shuffle"/></svg>
+            </button>
+            <button type="button" id="btn-reset-expressions" class="btn btn-sm btn-outline-secondary" title="Reset all expressions">
+              <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg>
+            </button>
+            </div>
+          </div>
+          <div id="expression-controls" class="flex-grow-1 overflow-auto p-2">
+            <div class="text-secondary small p-2">Please load a VRM</div>
+          </div>
+        </div>
+
+        <!-- Background tab -->
+        <div id="panel-tab-scene" class="d-none flex-column flex-grow-1 overflow-hidden">
+          <div class="p-2 border-bottom border-secondary">
+            <span class="small fw-bold text-secondary">
+              <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#image"/></svg>Environment</span>
+          </div>
+          <div class="flex-grow-1 overflow-auto p-2">
+            <div class="mb-3">
+              <label class="form-label small text-secondary mb-1" for="bg-color">Background color</label>
+              <div class="d-flex gap-2">
+                <input type="color" id="bg-color" class="form-control form-control-color flex-grow-1" value="#1a1a2e" title="Background color">
+                <button type="button" id="btn-reset-bg-color" class="btn btn-outline-secondary" title="Reset the background color to the default" aria-label="Reset the background color to the default">
+                  <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small text-secondary mb-1" for="bg-image">Background image / video</label>
+              <input type="file" id="bg-image" class="form-control form-control-sm" accept="image/*,video/*">
+              <button type="button" id="btn-clear-bg-image" class="btn btn-sm btn-outline-secondary w-100 mt-1">
+                <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#x-circle"/></svg>Remove image/video and use color
+              </button>
+            </div>
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" role="switch" id="toggle-grid" checked>
+              <label class="form-check-label small" for="toggle-grid">Show floor grid</label>
+            </div>
+            <hr class="border-secondary">
+            <div class="small fw-bold text-secondary mb-2" title="Hair and clothes sag under gravity. Models usually have no gravity set, so they do not hang down when you tilt the body or raise a leg"><svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#sliders"/></svg>Physics (hair & clothes)</div>
+            <div class="form-check form-switch mb-2">
+              <input class="form-check-input" type="checkbox" role="switch" id="toggle-physics" checked>
+              <label class="form-check-label small" for="toggle-physics">Simulate hair and clothes</label>
+            </div>
+            <div class="mb-2">
+              <div class="d-flex justify-content-between align-items-center small text-secondary">
+                <label for="physics-gravity">Gravity</label>
+                <span id="physics-gravity-value" class="ms-auto me-1">0.50</span>
+                <button type="button" id="btn-reset-gravity" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Reset gravity" aria-label="Reset gravity">
+                  <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg>
+                </button>
+              </div>
+              <input type="range" class="form-range" id="physics-gravity" min="0" max="2" step="0.05" value="0.5">
+            </div>
+            <div class="d-flex justify-content-between align-items-center small text-secondary mt-3 mb-1" title="Wind blows hair and clothes. Directions are in world space as seen from the front: right, up, and toward the viewer (front)">
+              <span>Wind (direction it blows toward)</span>
+              <button type="button" id="btn-reset-wind" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Reset wind" aria-label="Reset wind">
+                <svg width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg>
+              </button>
+            </div>
+            <div class="mb-1">
+              <div class="d-flex justify-content-between small text-secondary">
+                <label for="wind-x">Left ⟷ Right</label>
+                <span id="wind-x-value">0.0</span>
+              </div>
+              <input type="range" class="form-range" id="wind-x" min="-2" max="2" step="0.1" value="0">
+            </div>
+            <div class="mb-1">
+              <div class="d-flex justify-content-between small text-secondary">
+                <label for="wind-y">Down ⟷ Up</label>
+                <span id="wind-y-value">0.0</span>
+              </div>
+              <input type="range" class="form-range" id="wind-y" min="-2" max="2" step="0.1" value="0">
+            </div>
+            <div class="mb-1">
+              <div class="d-flex justify-content-between small text-secondary">
+                <label for="wind-z">Back ⟷ Front</label>
+                <span id="wind-z-value">0.0</span>
+              </div>
+              <input type="range" class="form-range" id="wind-z" min="-2" max="2" step="0.1" value="0">
+            </div>
+            <div class="mb-1">
+              <div class="d-flex justify-content-between small text-secondary">
+                <label for="wind-gust">Gust (varying strength)</label>
+                <span id="wind-gust-value">0.50</span>
+              </div>
+              <input type="range" class="form-range" id="wind-gust" min="0" max="1" step="0.05" value="0.5">
+            </div>
+            <div class="mb-1">
+              <div class="d-flex justify-content-between small text-secondary" title="Pushes skirt cloth out of the legs, hips and hands so thighs don't poke through it (only cloth hanging from the waist, like skirts; tight clothes are left alone). 0 = off (default). Raise it if the skirt looks cut by the legs; too high makes it bulge.">
+                <label for="physics-collision">Skirt clipping fix</label>
+                <span id="physics-collision-value">0.00</span>
+              </div>
+              <input type="range" class="form-range" id="physics-collision" min="0" max="1.5" step="0.05" value="0">
+            </div>
+            <div class="mb-1">
+              <div class="d-flex justify-content-between small text-secondary" title="Pushes the edges of hair strands out of the actual surface (clothes included) of the neck, shoulders, chest and arms so they don't sink in. 0 = off (default). At 1 the strand edges just touch the surface, so start there. Lower allows a little sinking; higher floats the hair off the surface.">
+                <label for="physics-hair-collision">Hair clipping fix</label>
+                <span id="physics-hair-collision-value">0.00</span>
+              </div>
+              <input type="range" class="form-range" id="physics-hair-collision" min="0" max="1.5" step="0.05" value="0">
+            </div>
+            <div class="mb-2" title="Lays small spheres along the clothes surface, only for the swaying parts of the selected area, so they sink into clothes less. Lighter than Hair clipping fix, and applies while it is 0.">
+              <div class="small mb-1">Strict collision</div>
+              <div class="form-check form-check-inline form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="physics-strict-hair">
+                <label class="form-check-label small" for="physics-strict-hair">Hair</label>
+              </div>
+              <div class="form-check form-check-inline form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="physics-strict-skirt">
+                <label class="form-check-label small" for="physics-strict-skirt">Skirt</label>
+              </div>
+              <div class="form-check form-check-inline form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="physics-strict-other">
+                <label class="form-check-label small" for="physics-strict-other">Other</label>
+              </div>
+            </div>
+            <div class="mb-2"></div>
+            <button type="button" id="btn-settle-physics" class="btn btn-sm btn-outline-body w-100 mb-3" title="Let hair and clothes settle for a few seconds in the current pose (use it after changing the pose a lot, before a screenshot)">Settle hair & clothes</button>
+            <hr class="border-secondary">
+            <div class="small fw-bold text-secondary mb-2"><svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#lightbulb"/></svg>Lights</div>
+            <div id="light-controls"></div>
+          </div>
+        </div>
+
+        <!-- Materials tab -->
+        <div id="panel-tab-material" class="d-none flex-column flex-grow-1 overflow-hidden">
+          <div class="p-2 border-bottom border-secondary">
+            <span class="small fw-bold text-secondary">
+              <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#palette2"/></svg>Materials
+            </span>
+            <select id="material-select" class="form-select form-select-sm mt-2" disabled></select>
+          </div>
+          <div id="material-controls" class="flex-grow-1 overflow-auto p-2">
+            <div class="text-secondary small p-2">Please load a VRM</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer: Action Buttons -->
+    <div id="footer" class="bg-body-tertiary border-top border-secondary px-3 py-2 flex-shrink-0 d-flex flex-wrap gap-2 align-items-center">
+            <button id="bone-all-random" type="button" class="btn btn-outline-primary btn-sm" title="Randomize pose (all bones within limits)" aria-label="Randomize pose (all bones within limits)">
+        <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#shuffle"/></svg>Randomize pose
+      </button>
+      <button id="btn-reset-pose" type="button" class="btn btn-outline-primary btn-sm" disabled title="Reset pose (including position)">
+        <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise"/></svg>Reset pose
+      </button>
+      <div class="vr mx-1"></div>
+<button id="btn-screenshot" class="btn btn-outline-body btn-sm" disabled>
+        <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#camera"/></svg>Screenshot
+      </button>
+      <select id="screenshot-scale" class="form-select form-select-sm w-auto" title="Screenshot size (multiplier of the current view; capped by the browser/GPU limit)" aria-label="Screenshot scale">
+        <option value="1" selected>×1</option>
+        <option value="2">×2</option>
+        <option value="3">×3</option>
+        <option value="4">×4</option>
+      </select>
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input" type="checkbox" role="switch" id="screenshot-transparent">
+        <label class="form-check-label small" for="screenshot-transparent" title="Saves a PNG with no background, floor grid or fog">Transparent background</label>
+      </div>
+      <div class="vr mx-1"></div>
+      <button id="btn-capture-portrait" class="btn btn-outline-body btn-sm" disabled title="Saves a 600×800 transparent PNG of the model being edited, framed from the waist up, with the current pose and expression. File name: (model name)_portrait.png">
+        <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#person-circle"/></svg>Portrait shot
+      </button>
+      <button id="btn-capture-full-body" class="btn btn-outline-body btn-sm" disabled title="Saves a 600×800 transparent PNG of the model being edited, framed to fit the whole body, with the current pose and expression. File name: (model name)_full_body.png">
+        <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#person-arms-up"/></svg>Full-body shot
+      </button>
+    </div>
+
+    </div>
+
+    <!-- Model picker modal (shown at start-up; reads vrm/list.txt) -->
+    <div class="modal fade" id="model-picker" tabindex="-1" aria-labelledby="model-picker-title" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="model-picker-title">Choose a model</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-8 col-lg-9">
+                <div id="model-picker-grid" class="model-picker-grid"></div>
+              </div>
+              <div class="col-md-4 col-lg-3 d-none d-md-block">
+                <div class="model-picker-preview">
+                  <div class="model-picker-preview-frame">
+                    <img id="model-picker-preview-img" class="d-none" alt="" loading="lazy" decoding="async">
+                    <div id="model-picker-preview-empty" class="text-secondary small p-2 text-center">Select a model to preview it</div>
+                  </div>
+                  <div id="model-picker-preview-name" class="fw-bold mt-2 text-truncate"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="model-picker-device" class="btn btn-outline-body btn-sm me-auto">
+              <svg class="me-1" width="1em" height="1em" fill="currentColor" aria-hidden="true"><use href="/vrm-body-resizer/icons/bootstrap-icons.svg#folder2-open"/></svg>Choose a file from this device…
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            <button type="button" id="model-picker-load" class="btn btn-primary btn-sm" disabled>Load this model</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UI strings dictionary (looked up from JS via tr(key)). Managed per language in this HTML -->
+    <script type="application/json" id="i18n">
+    {
+  "app.001": "Pose saved",
+  "app.002": "Pose copied to clipboard",
+  "app.003": "Failed to copy to clipboard",
+  "app.004": "Failed to paste from clipboard",
+  "app.005": "Project saved",
+  "app.006": "(No list: {0})",
+  "app.007": "Screenshot saved",
+  "app.008": "Unsupported project file",
+  "app.009": "Project loaded",
+  "app.010": "Failed to load project",
+  "app.011": "Loaded {0}",
+  "app.012": "Failed to load VRM: {0}",
+  "app.013": "Unsupported file (.vrm / .glb / .fbx / .vrma / .vrmposer.json / image / video)",
+  "app.014": "Please load a VRM model first",
+  "app.015": "Only one pose can be applied: {0}",
+  "app.016": "<div class=\"text-secondary small\">No models</div>",
+  "app.017": "Select {0}",
+  "app.018": "Remove {0} from the scene",
+  "app.019": "Please load a model",
+  "app.020": "Unsupported file format (choose .glb / .fbx / .vrma)",
+  "app.021": "Failed to load pose",
+  "app.022": "{0} is not a supported file format (.glb / .fbx / .vrma)",
+  "app.023": "{0}: Please choose a file that contains an animation",
+  "app.024": "{0}: Please choose a GLB that contains a scene",
+  "app.025": "{0}: The VRMA has no humanoid information",
+  "app.026": "{0}: Could not find any bones matching the VRM",
+  "app.027": "[vrm-pose-app] Unmapped bones: {0}",
+  "app.028": "{0}: Could not find enough bones matching the VRM (unmapped bone names, e.g.: {1})",
+  "app.029": "{0}: Could not find enough bones matching the VRM",
+  "app.030": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#pause-fill\"/></svg>Pause animation",
+  "app.031": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#play-fill\"/></svg>Play animation",
+  "app.032": "Failed to fetch the animation list",
+  "app.033": "Select a pose…",
+  "app.034": "Could not fetch {0}",
+  "app.035": "Could not fetch the animation list ({0})",
+  "app.036": "The animation list is empty. Put .fbx / .glb / .vrma files in the animations folder and generate list.txt",
+  "app.037": "Could not load {0}. Continuing random playback",
+  "app.038": "Random pose playback failed",
+  "app.039": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#stop-fill\"/></svg>Stop random pose playback",
+  "app.040": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#shuffle\"/></svg>Random pose playback",
+  "app.041": "<div class=\"text-secondary small p-2\">Please load a VRM</div>",
+  "app.042": "Removed {0} from the scene",
+  "app.043": "Pinning the selected bone as a hinge and moving everything from its parent bone \"{0}\" upward",
+  "app.044": "Control target set back to the selected bone itself",
+  "app.045": "Expressions reset",
+  "app.046": "This bone has no left/right counterpart",
+  "app.047": "Mirrored \"{0}\" to \"{1}\"",
+  "app.048": "Pose reset (including position)",
+  "app.049": "Could not capture an image of the model",
+  "app.050": "Saved {0}",
+  "app.051": "Expressions randomized",
+  "app.052": "Random pose failed (could not load the joint limit data)",
+  "obj.001": "No objects",
+  "obj.002": "Scale",
+  "obj.003": "Rotation (Y)",
+  "obj.004": "Remove {0} from the scene",
+  "obj.005": "Added {0} as an object",
+  "obj.006": "Could not load the object: {0}",
+  "obj.007": "No visible geometry was found in this file",
+  "obj.008": "Reset",
+  "picker.001": "{0} (portrait)",
+  "picker.002": "{0} (full body)",
+  "picker.003": "No preview image",
+  "ui.001": "Torso",
+  "ui.002": "Hips",
+  "ui.003": "Spine",
+  "ui.004": "Chest",
+  "ui.005": "Upper chest",
+  "ui.006": "Head",
+  "ui.007": "Neck",
+  "ui.008": "Jaw",
+  "ui.009": "Left eye",
+  "ui.010": "Right eye",
+  "ui.011": "Left arm",
+  "ui.012": "Left shoulder",
+  "ui.013": "Left upper arm",
+  "ui.014": "Left lower arm",
+  "ui.015": "Left hand",
+  "ui.016": "Left fingers",
+  "ui.017": "Left thumb 1",
+  "ui.018": "Left thumb 2",
+  "ui.019": "Left thumb 3",
+  "ui.020": "Left index 1",
+  "ui.021": "Left index 2",
+  "ui.022": "Left index 3",
+  "ui.023": "Left middle 1",
+  "ui.024": "Left middle 2",
+  "ui.025": "Left middle 3",
+  "ui.026": "Left ring 1",
+  "ui.027": "Left ring 2",
+  "ui.028": "Left ring 3",
+  "ui.029": "Left little 1",
+  "ui.030": "Left little 2",
+  "ui.031": "Left little 3",
+  "ui.032": "Right arm",
+  "ui.033": "Right shoulder",
+  "ui.034": "Right upper arm",
+  "ui.035": "Right lower arm",
+  "ui.036": "Right hand",
+  "ui.037": "Right fingers",
+  "ui.038": "Right thumb 1",
+  "ui.039": "Right thumb 2",
+  "ui.040": "Right thumb 3",
+  "ui.041": "Right index 1",
+  "ui.042": "Right index 2",
+  "ui.043": "Right index 3",
+  "ui.044": "Right middle 1",
+  "ui.045": "Right middle 2",
+  "ui.046": "Right middle 3",
+  "ui.047": "Right ring 1",
+  "ui.048": "Right ring 2",
+  "ui.049": "Right ring 3",
+  "ui.050": "Right little 1",
+  "ui.051": "Right little 2",
+  "ui.052": "Right little 3",
+  "ui.053": "Left leg",
+  "ui.054": "Left thigh",
+  "ui.055": "Left shin",
+  "ui.056": "Left foot",
+  "ui.057": "Left toes",
+  "ui.058": "Right leg",
+  "ui.059": "Right thigh",
+  "ui.060": "Right shin",
+  "ui.061": "Right foot",
+  "ui.062": "Right toes",
+  "ui.063": "Happy",
+  "ui.064": "Angry",
+  "ui.065": "Sad",
+  "ui.066": "Relaxed",
+  "ui.067": "Surprised",
+  "ui.068": "Mouth: A",
+  "ui.069": "Mouth: I",
+  "ui.070": "Mouth: U",
+  "ui.071": "Mouth: E",
+  "ui.072": "Mouth: O",
+  "ui.073": "Blink (both eyes)",
+  "ui.074": "Blink (left eye)",
+  "ui.075": "Blink (right eye)",
+  "ui.076": "Look: up",
+  "ui.077": "Look: down",
+  "ui.078": "Look: left",
+  "ui.079": "Look: right",
+  "ui.080": "<div class=\"text-secondary small p-2\">Please select a bone</div>",
+  "ui.081": "<svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-counterclockwise\"/></svg> Reset",
+  "ui.082": "Reset this bone's rotation and position",
+  "ui.083": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#symmetry-vertical\"/></svg>Mirror to \"{0}\"",
+  "ui.084": "Copies the pose of this bone and its descendants (down to the hand and fingers for an arm) to the opposite side.",
+  "ui.085": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#arrow-up-circle\"/></svg>To parent bone ({0})",
+  "ui.086": "Switches the selection itself to the parent bone toward the root (the sphere moves too). This is separate from the \"control target toggle\" (clicking the center of the sphere).",
+  "ui.087": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#info-circle\"/></svg>This is the root-most bone",
+  "ui.088": "Reset the {0} axis only",
+  "ui.089": "<div class=\"text-secondary small p-2\">This VRM has no expressions</div>",
+  "ui.090": "Reset this expression to 0",
+  "ui.091": "Thumb",
+  "ui.092": "Index",
+  "ui.093": "Middle",
+  "ui.094": "Ring",
+  "ui.095": "Little",
+  "ui.096": "Randomize \"{0}\" within joint limits",
+  "ui.097": "Reset \"{0}\" to the initial pose",
+  "ui.098": "Eyes",
+  "ui.099": "{0}: joint {1} (counted from the base)",
+  "mat.001": "None",
+  "mat.002": "Normal",
+  "mat.003": "Shading ratio",
+  "mat.004": "World coordinates",
+  "mat.005": "Screen coordinates",
+  "mat.006": "Color (lit side)",
+  "mat.007": "Opacity",
+  "mat.008": "0 is fully transparent, 1 is fully opaque.",
+  "mat.009": "Alpha cutoff",
+  "mat.010": "Threshold below which texture alpha is not drawn at all (fully transparent). Used to avoid jagged cut-out edges.",
+  "mat.011": "Enable transparency",
+  "mat.012": "Turns transparent rendering itself on/off. While off, changing opacity or alpha cutoff above has no effect.",
+  "mat.013": "Double-sided",
+  "mat.014": "The \"back face\" is the side of a polygon whose normal points away from you. For thin, open, sheet-like meshes such as hair or skirts, turning this on draws the back side too, which fixes the case where you look through a gap and see nothing inside. For closed meshes such as a body, back faces are never visible to the camera, so turning it on changes nothing.",
+  "mat.015": "Wireframe",
+  "mat.016": "Metalness",
+  "mat.017": "Roughness",
+  "mat.018": "Clearcoat",
+  "mat.019": "Clearcoat roughness",
+  "mat.020": "Index of refraction (IOR)",
+  "mat.021": "Transmission",
+  "mat.022": "Thickness",
+  "mat.023": "Attenuation distance (max = infinite)",
+  "mat.024": "Attenuation color",
+  "mat.025": "Sheen (cloth-like gloss)",
+  "mat.026": "Sheen roughness",
+  "mat.027": "Sheen color",
+  "mat.028": "Specular intensity",
+  "mat.029": "Specular color",
+  "mat.030": "Iridescence (rainbow film)",
+  "mat.031": "Iridescence IOR",
+  "mat.032": "Anisotropy (hairline-like reflection)",
+  "mat.033": "Anisotropy rotation",
+  "mat.034": "Dispersion (rainbow fringing)",
+  "mat.035": "Emissive color",
+  "mat.036": "The color of the effect that makes the surface itself appear to glow. It is always added regardless of lighting, so it glows even in the dark. If \"Emissive intensity\" below is 0, changing this color has no visible effect (it is raised to 1 automatically). If nothing changes even then, also turn on \"Ignore emissive map\" below.",
+  "mat.037": "Emissive intensity",
+  "mat.038": "The strength multiplied with the emissive color. While the emissive color is black, no value here changes the look.",
+  "mat.039": "Ignore emissive map",
+  "mat.040": "Many VRM models assign a nearly black \"emissive map\" texture even to parts that are not meant to glow. The shader multiplies the emissive color by this texture, so when the map is black, no change to emissive color or intensity is visible. Turning this on temporarily detaches that texture so the emissive color is applied as is (turn it off to restore the original texture).",
+  "mat.041": "Shade color (shadow color)",
+  "mat.042": "The color of areas in shadow. The bigger the difference from \"Color (lit side)\", the easier the toony effect below is to see. On models where the two colors are close, changing toony makes almost no visible difference.",
+  "mat.043": "Shading shift",
+  "mat.044": "Moves the shadow boundary (the line between light and dark) back and forth.",
+  "mat.045": "Toony",
+  "mat.046": "The width of the gradient between light and shadow. Closer to 1 gives a crisp edge (flat two-tone), closer to 0 a smoother one. The effect is only visible at the light/dark boundary, so you won't see a change from an angle where the whole body looks equally bright. Rotate the model and check at an angle with clear light/dark separation, such as the side of the face or the base of the arm. Also, on models where \"Shade color\" is close to \"Color (lit side)\", the color difference itself is small, so a crisp edge is hard to notice.",
+  "mat.047": "Rim color",
+  "mat.048": "The color of the rim that makes the silhouette appear to glow.",
+  "mat.049": "Fresnel power",
+  "mat.050": "How tightly the rim is squeezed toward the silhouette edge. Larger values concentrate it right at the edge.",
+  "mat.051": "Lift",
+  "mat.052": "How much the rim is spread toward the front as well.",
+  "mat.053": "Tint",
+  "mat.054": "The color multiplied with the MatCap texture. This app cannot assign textures, so this item only appears for materials that already have one.",
+  "mat.055": "Type",
+  "mat.056": "Width",
+  "mat.057": "In meters (for world coordinates). For a humanoid model about 1.6 m tall, 0.001–0.005 is a good range; beyond that the outline gets too thick for the body and breaks down at joints and similar spots. The slider maximum is deliberately kept low for safety.",
+  "mat.058": "Color",
+  "mat.059": "Mix with lighting",
+  "mat.060": "0: paints the outline in the plain color on the left. 1: multiplies the color by the actual shading (lighting result) at that spot, so lit areas get a bright outline and shadowed areas a dark one (only the light/dark of that spot is mixed in, not the underlying skin or clothing color; this is the intended behavior).",
+  "mat.061": "Scroll speed X",
+  "mat.062": "Speed for effects that scroll a pattern. Most VRM skin and clothing textures are not made for this, so the effect is hard to notice on ordinary models.",
+  "mat.063": "Scroll speed Y",
+  "mat.064": "Rotation speed",
+  "mat.065": "Current scroll offset X",
+  "mat.066": "The current offset itself, which keeps changing over time according to the speed above. Setting the speed back to 0 does not restore the position, so reset this to undo the offset.",
+  "mat.067": "Current scroll offset Y",
+  "mat.068": "Current rotation",
+  "mat.069": "The current rotation angle itself (radians), which keeps changing over time according to the rotation speed. Reset returns it to 0.",
+  "mat.070": "Ignore vertex colors",
+  "mat.071": "VRM0-compatible shading",
+  "mat.072": "Debug view",
+  "mat.073": "<div class=\"text-secondary small p-2\">No materials found</div>",
+  "mat.074": "All materials",
+  "mat.075": "<div class=\"text-secondary small p-2\">Please select a material</div>",
+  "mat.076": "Applies to all {0} materials of this model (opacity, transparency and alpha cutoff mean different things per part, so they can only be edited when an individual material is selected)",
+  "mat.077": "Basic",
+  "mat.078": "Surface (PBR)",
+  "mat.079": "Surface (PBR+)",
+  "mat.080": "Emissive",
+  "mat.081": "Shade (shading)",
+  "mat.082": "Rim light",
+  "mat.083": "MatCap",
+  "mat.084": "Outline",
+  "mat.085": "UV animation",
+  "mat.086": "Advanced",
+  "light.001": "Ambient light",
+  "light.002": "Hemisphere light",
+  "light.003": "Directional light",
+  "light.004": "Point light",
+  "light.005": "Spot light",
+  "light.006": "No lights. Add one with the button above.",
+  "light.007": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#arrows-move\"/></svg>Edit light positions in view",
+  "light.008": "When on, a sphere marking each light's position is shown in the 3D view. Drag to move it, Shift+drag to move it in depth (a plain click just selects that light). Directional lights are drawn with a line to where they point.",
+  "light.009": "<svg class=\"me-1\" width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\"><use href=\"/vrm-body-resizer/icons/bootstrap-icons.svg#plus-lg\"/></svg>Add",
+  "light.010": "Turn this light off",
+  "light.011": "Turn this light on",
+  "light.012": "Randomize this light",
+  "light.013": "Delete this light",
+  "light.014": "Color (sky)",
+  "light.015": "Intensity",
+  "light.016": "Color (ground)",
+  "light.017": "Position {0}",
+  "light.018": "Distance (0 = infinite)",
+  "light.019": "Decay",
+  "light.020": "Cone angle",
+  "light.021": "Penumbra (edge softness)",
+  "light.022": "Cast shadow",
+  "ctl.001": "Reset to default",
+  "ctl.002": "Show description of this item",
+  "exp.001": "This browser does not support writing to the clipboard",
+  "exp.002": "This browser does not support reading from the clipboard",
+  "exp.003": "No pose found on the clipboard. Run \"Copy to clipboard\" first",
+  "exp.004": "Please choose a pose file that contains VRMC_vrm_animation",
+  "scene.001": "Unsupported light type: {0}",
+  "vrm.001": "No VRM data found. Please choose a valid VRM file.",
+  "app.bgFailed": "Failed to load the background image/video",
+  "body.panel": "Body",
+  "body.random": "Randomize body shape",
+  "body.reset": "Reset all body shape",
+  "body.resetDone": "Body shape reset",
+  "body.randomDone": "Body shape randomized",
+  "body.section.overall": "Overall size",
+  "body.section.type": "Body type",
+  "body.section.head": "Head",
+  "body.section.shoulder": "Shoulders",
+  "body.section.chest": "Chest",
+  "body.section.waist": "Waist / Hips",
+  "body.section.arm": "Arms",
+  "body.section.hand": "Hands",
+  "body.section.finger": "Fingers",
+  "body.section.leg": "Legs",
+  "body.section.foot": "Feet",
+  "body.height": "Height",
+  "body.height.reset": "Reset height",
+  "body.build": "Overall thickness",
+  "body.build.reset": "Reset overall thickness",
+  "body.bodyType": "Slim ↔ Plump",
+  "body.bodyType.reset": "Reset body type",
+  "body.headWidth": "Head width",
+  "body.headWidth.reset": "Reset head width",
+  "body.headLength": "Head length",
+  "body.headLength.reset": "Reset head length",
+  "body.neckLength": "Neck length",
+  "body.neckLength.reset": "Reset neck length",
+  "body.neckThickness": "Neck thickness",
+  "body.neckThickness.reset": "Reset neck thickness",
+  "body.shoulderWidth": "Shoulder width",
+  "body.shoulderWidth.reset": "Reset shoulder width",
+  "body.chestLength": "Chest length",
+  "body.chestLength.reset": "Reset chest length",
+  "body.chestWidth": "Chest width",
+  "body.chestWidth.reset": "Reset chest width",
+  "body.chestDepth": "Chest thickness",
+  "body.chestDepth.reset": "Reset chest thickness",
+  "body.waistLength": "Waist length",
+  "body.waistLength.reset": "Reset waist length",
+  "body.waistSize": "Waist size",
+  "body.waistSize.reset": "Reset waist size",
+  "body.hipWidth": "Hip width",
+  "body.hipWidth.reset": "Reset hip width",
+  "body.hipDepth": "Hip thickness",
+  "body.hipDepth.reset": "Reset hip thickness",
+  "body.spineCurve": "Spine curve",
+  "body.spineCurve.reset": "Reset spine curve",
+  "body.upperArmLength": "Upper arm length",
+  "body.upperArmLength.reset": "Reset upper arm length",
+  "body.upperArmThickness": "Upper arm thickness",
+  "body.upperArmThickness.reset": "Reset upper arm thickness",
+  "body.lowerArmLength": "Lower arm length",
+  "body.lowerArmLength.reset": "Reset lower arm length",
+  "body.lowerArmThickness": "Lower arm thickness",
+  "body.lowerArmThickness.reset": "Reset lower arm thickness",
+  "body.handLength": "Hand length",
+  "body.handLength.reset": "Reset hand length",
+  "body.handWidth": "Hand width",
+  "body.handWidth.reset": "Reset hand width",
+  "body.handThickness": "Hand thickness",
+  "body.handThickness.reset": "Reset hand thickness",
+  "body.thumbLength": "Thumb: length",
+  "body.thumbLength.reset": "Reset thumb length",
+  "body.thumbThickness": "Thumb: thickness",
+  "body.thumbThickness.reset": "Reset thumb thickness",
+  "body.indexLength": "Index: length",
+  "body.indexLength.reset": "Reset index length",
+  "body.indexThickness": "Index: thickness",
+  "body.indexThickness.reset": "Reset index thickness",
+  "body.middleLength": "Middle: length",
+  "body.middleLength.reset": "Reset middle length",
+  "body.middleThickness": "Middle: thickness",
+  "body.middleThickness.reset": "Reset middle thickness",
+  "body.ringLength": "Ring: length",
+  "body.ringLength.reset": "Reset ring length",
+  "body.ringThickness": "Ring: thickness",
+  "body.ringThickness.reset": "Reset ring thickness",
+  "body.littleLength": "Little: length",
+  "body.littleLength.reset": "Reset little length",
+  "body.littleThickness": "Little: thickness",
+  "body.littleThickness.reset": "Reset little thickness",
+  "body.upperLegLength": "Thigh length",
+  "body.upperLegLength.reset": "Reset thigh length",
+  "body.upperLegThickness": "Thigh thickness",
+  "body.upperLegThickness.reset": "Reset thigh thickness",
+  "body.lowerLegLength": "Shin length",
+  "body.lowerLegLength.reset": "Reset shin length",
+  "body.lowerLegThickness": "Shin thickness",
+  "body.lowerLegThickness.reset": "Reset shin thickness",
+  "body.footLength": "Foot length",
+  "body.footLength.reset": "Reset foot length",
+  "body.footWidth": "Foot width",
+  "body.footWidth.reset": "Reset foot width",
+  "body.footHeight": "Instep thickness",
+  "body.footHeight.reset": "Reset instep thickness",
+  "body.toesLength": "Toes length",
+  "body.toesLength.reset": "Reset toes length",
+  "body.metric.height": "Height",
+  "body.metric.sitting": "Sitting height",
+  "body.metric.heads": "Head ratio",
+  "body.metric.bwh": "BWH"
+}
+    </script>
+
+    <script type="module" src="/vrm-body-resizer/js/app.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+    <!--
+      drop-inline-css は HTML の文字列だけを見て未使用 CSS を削除する。
+      JS(src/js/*.js)や Bootstrap の JS が実行時に付ける Bootstrap のクラスは、
+      ここに列挙しておくこと。JS に Bootstrap のクラスを足したらここにも足す。
+    -->
+    <div class="drop-inline-css d-none
+      active border border-0 border-secondary btn-close-white btn-info
+      d-inline-flex end-0 flex-shrink-1 m-auto my-3 p-3 rounded text-body-emphasis
+      text-end text-nowrap text-start toast toast-body toast-container
+      text-bg-primary text-bg-secondary text-bg-success text-bg-danger
+      text-bg-warning text-bg-info
+      show showing fade collapse collapsing collapsed
+      modal-backdrop modal-static"></div>
+  </body>
+</html>
