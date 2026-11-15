@@ -842,7 +842,7 @@ export class BodyShapeController {
   /**
    * 体型適用後の実寸目安を canvas 左上に出す。
    * - 身長: 足底〜頭頂（髪の毛先や手上げを除外するためボーン基準）
-   * - 座高: 股関節(hips)〜頭頂
+   * - 座高: 座面（hips 中心 − 骨盤厚みの半分）〜頭頂
    * - 等身: 身長 / 頭高（首ボーン〜頭頂）
    * - BWH: 読込時の胴断面半幅 (左右・前後) に各部位スライダーを掛け、
    *   楕円周長で再計算（B=胸 / W=ウエスト / H=腰。相互干渉なし）
@@ -919,11 +919,21 @@ export class BodyShapeController {
 
     const heightM = Math.max(headTopY - footY, 0);
 
-    // 座高: hips 〜 頭頂
+    // 座高: 座面（hips 中心 − 骨盤厚みの半分）〜 頭頂
+    // hips は骨盤中心なので、そのままだと実際の座面より高くなり座高が短く出る。
+    // hipDepth / build / height で厚み分を下げ、身長比でガードする。
     let sittingM = heightM * 0.52;
     if (hips) {
       hips.getWorldPosition(pos);
-      sittingM = Math.max(headTopY - pos.y, 0);
+      const hp = this.params;
+      const hipHalf = 0.04 * (hp.height || 1) * (hp.build || 1) *
+        (hp.hipDepth || 1);
+      const seatOffset = Math.min(
+        Math.max(hipHalf, heightM * 0.02),
+        heightM * 0.06,
+      );
+      const seatY = pos.y - seatOffset;
+      sittingM = Math.max(headTopY - seatY, 0);
     }
 
     // 頭高: 首（あご下付近）〜 頭頂。等身計算の分母。
