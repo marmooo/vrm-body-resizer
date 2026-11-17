@@ -121,48 +121,64 @@ export const DEFAULTS = {
   height: 1,
   build: 1,
   bodyType: 0,
-  headWidth: 1,
   headLength: 1,
+  headWidth: 1,
+  headThickness: 1,
   neckLength: 1,
+  neckWidth: 1,
   neckThickness: 1,
+  shoulderLength: 1,
   shoulderWidth: 1,
+  shoulderThickness: 1,
   chestLength: 1,
   chestWidth: 1,
-  chestDepth: 1,
+  chestThickness: 1,
   upperChestLength: 1,
   upperChestWidth: 1,
-  upperChestDepth: 1,
+  upperChestThickness: 1,
   waistLength: 1,
-  waistSize: 1,
+  waistWidth: 1,
+  waistThickness: 1,
   hipLength: 1,
   hipWidth: 1,
-  hipDepth: 1,
+  hipThickness: 1,
   spineCurve: 0,
   upperArmLength: 1,
+  upperArmWidth: 1,
   upperArmThickness: 1,
   lowerArmLength: 1,
+  lowerArmWidth: 1,
   lowerArmThickness: 1,
   handLength: 1,
   handWidth: 1,
   handThickness: 1,
   thumbLength: 1,
+  thumbWidth: 1,
   thumbThickness: 1,
   indexLength: 1,
+  indexWidth: 1,
   indexThickness: 1,
   middleLength: 1,
+  middleWidth: 1,
   middleThickness: 1,
   ringLength: 1,
+  ringWidth: 1,
   ringThickness: 1,
   littleLength: 1,
+  littleWidth: 1,
   littleThickness: 1,
   upperLegLength: 1,
+  upperLegWidth: 1,
   upperLegThickness: 1,
   lowerLegLength: 1,
+  lowerLegWidth: 1,
   lowerLegThickness: 1,
   footLength: 1,
   footWidth: 1,
-  footHeight: 1,
+  footThickness: 1,
   toesLength: 1,
+  toesWidth: 1,
+  toesThickness: 1,
 };
 
 export const SLIDER_META = {
@@ -175,22 +191,32 @@ export const SLIDER_META = {
     section: "体型",
     special: "bodyType",
   },
+  headLength: { min: 50, max: 200, label: "頭の長さ", section: "頭部" },
   headWidth: { min: 50, max: 200, label: "頭の横幅", section: "頭部" },
-  headLength: { min: 50, max: 200, label: "頭の縦幅", section: "頭部" },
+  headThickness: { min: 50, max: 200, label: "頭の厚み", section: "頭部" },
   neckLength: { min: 50, max: 200, label: "首の長さ", section: "頭部" },
-  neckThickness: { min: 50, max: 200, label: "首の太さ", section: "頭部" },
-  shoulderWidth: { min: 50, max: 200, label: "肩幅", section: "肩" },
+  neckWidth: { min: 50, max: 200, label: "首の横幅", section: "頭部" },
+  neckThickness: { min: 50, max: 200, label: "首の厚み", section: "頭部" },
+  shoulderLength: { min: 50, max: 200, label: "肩の長さ", section: "肩" },
+  shoulderWidth: { min: 50, max: 200, label: "肩の横幅", section: "肩" },
+  shoulderThickness: { min: 50, max: 200, label: "肩の厚み", section: "肩" },
   chestLength: { min: 50, max: 200, label: "胸の長さ", section: "胸" },
   chestWidth: { min: 50, max: 200, label: "胸の横幅", section: "胸" },
-  chestDepth: { min: 50, max: 200, label: "胸の厚み", section: "胸" },
+  chestThickness: { min: 50, max: 200, label: "胸の厚み", section: "胸" },
   upperChestLength: { min: 50, max: 200, label: "上胸の長さ", section: "上胸" },
   upperChestWidth: { min: 50, max: 200, label: "上胸の横幅", section: "上胸" },
-  upperChestDepth: { min: 50, max: 200, label: "上胸の厚み", section: "上胸" },
+  upperChestThickness: {
+    min: 50,
+    max: 200,
+    label: "上胸の厚み",
+    section: "上胸",
+  },
   waistLength: { min: 50, max: 200, label: "腰の長さ", section: "腰" },
-  waistSize: { min: 50, max: 200, label: "ウエスト", section: "腰" },
-  hipLength: { min: 50, max: 200, label: "骨盤の高さ", section: "腰" },
-  hipWidth: { min: 50, max: 200, label: "腰幅", section: "腰" },
-  hipDepth: { min: 50, max: 200, label: "腰の厚み", section: "腰" },
+  waistWidth: { min: 50, max: 200, label: "腰の横幅", section: "腰" },
+  waistThickness: { min: 50, max: 200, label: "腰の厚み", section: "腰" },
+  hipLength: { min: 50, max: 200, label: "骨盤の長さ", section: "腰" },
+  hipWidth: { min: 50, max: 200, label: "骨盤の横幅", section: "腰" },
+  hipThickness: { min: 50, max: 200, label: "骨盤の厚み", section: "腰" },
   spineCurve: {
     min: -50,
     max: 50,
@@ -199,35 +225,46 @@ export const SLIDER_META = {
     special: "spineCurve",
   },
   upperArmLength: { min: 50, max: 200, label: "上腕の長さ", section: "腕" },
-  upperArmThickness: { min: 50, max: 200, label: "上腕の太さ", section: "腕" },
+  upperArmWidth: { min: 50, max: 200, label: "上腕の横幅", section: "腕" },
+  upperArmThickness: { min: 50, max: 200, label: "上腕の厚み", section: "腕" },
   lowerArmLength: { min: 50, max: 200, label: "前腕の長さ", section: "腕" },
-  lowerArmThickness: { min: 50, max: 200, label: "前腕の太さ", section: "腕" },
+  lowerArmWidth: { min: 50, max: 200, label: "前腕の横幅", section: "腕" },
+  lowerArmThickness: { min: 50, max: 200, label: "前腕の厚み", section: "腕" },
   handLength: { min: 50, max: 200, label: "手の長さ", section: "手" },
-  handWidth: { min: 50, max: 200, label: "手の幅", section: "手" },
+  handWidth: { min: 50, max: 200, label: "手の横幅", section: "手" },
   handThickness: { min: 50, max: 200, label: "手の厚み", section: "手" },
   thumbLength: { min: 50, max: 200, label: "親指：長さ", section: "指" },
-  thumbThickness: { min: 50, max: 200, label: "親指：太さ", section: "指" },
+  thumbWidth: { min: 50, max: 200, label: "親指：横幅", section: "指" },
+  thumbThickness: { min: 50, max: 200, label: "親指：厚み", section: "指" },
   indexLength: { min: 50, max: 200, label: "人差し指：長さ", section: "指" },
-  indexThickness: { min: 50, max: 200, label: "人差し指：太さ", section: "指" },
+  indexWidth: { min: 50, max: 200, label: "人差し指：横幅", section: "指" },
+  indexThickness: { min: 50, max: 200, label: "人差し指：厚み", section: "指" },
   middleLength: { min: 50, max: 200, label: "中指：長さ", section: "指" },
-  middleThickness: { min: 50, max: 200, label: "中指：太さ", section: "指" },
+  middleWidth: { min: 50, max: 200, label: "中指：横幅", section: "指" },
+  middleThickness: { min: 50, max: 200, label: "中指：厚み", section: "指" },
   ringLength: { min: 50, max: 200, label: "薬指：長さ", section: "指" },
-  ringThickness: { min: 50, max: 200, label: "薬指：太さ", section: "指" },
+  ringWidth: { min: 50, max: 200, label: "薬指：横幅", section: "指" },
+  ringThickness: { min: 50, max: 200, label: "薬指：厚み", section: "指" },
   littleLength: { min: 50, max: 200, label: "小指：長さ", section: "指" },
-  littleThickness: { min: 50, max: 200, label: "小指：太さ", section: "指" },
+  littleWidth: { min: 50, max: 200, label: "小指：横幅", section: "指" },
+  littleThickness: { min: 50, max: 200, label: "小指：厚み", section: "指" },
   upperLegLength: { min: 50, max: 200, label: "太ももの長さ", section: "脚" },
+  upperLegWidth: { min: 50, max: 200, label: "太ももの横幅", section: "脚" },
   upperLegThickness: {
     min: 50,
     max: 200,
-    label: "太ももの太さ",
+    label: "太ももの厚み",
     section: "脚",
   },
   lowerLegLength: { min: 50, max: 200, label: "すねの長さ", section: "脚" },
-  lowerLegThickness: { min: 50, max: 200, label: "すねの太さ", section: "脚" },
+  lowerLegWidth: { min: 50, max: 200, label: "すねの横幅", section: "脚" },
+  lowerLegThickness: { min: 50, max: 200, label: "すねの厚み", section: "脚" },
   footLength: { min: 50, max: 200, label: "足の長さ", section: "足" },
-  footWidth: { min: 50, max: 200, label: "足の幅", section: "足" },
-  footHeight: { min: 50, max: 200, label: "足の甲の厚み", section: "足" },
+  footWidth: { min: 50, max: 200, label: "足の横幅", section: "足" },
+  footThickness: { min: 50, max: 200, label: "足の厚み", section: "足" },
   toesLength: { min: 50, max: 200, label: "つま先の長さ", section: "足" },
+  toesWidth: { min: 50, max: 200, label: "つま先の横幅", section: "足" },
+  toesThickness: { min: 50, max: 200, label: "つま先の厚み", section: "足" },
 };
 
 export class BodyShapeController {
@@ -599,51 +636,51 @@ export class BodyShapeController {
       }
     }
 
-    this._scaleBoneLTT("hips", p.hipLength, p.hipWidth, p.hipDepth);
-    this._scaleBoneLTT("spine", p.waistLength, p.waistSize, p.hipDepth);
-    this._scaleBoneLTT("chest", p.chestLength, p.chestWidth, p.chestDepth);
+    this._scaleBoneLTT("hips", p.hipLength, p.hipWidth, p.hipThickness);
+    this._scaleBoneLTT("spine", p.waistLength, p.waistWidth, p.waistThickness);
+    this._scaleBoneLTT("chest", p.chestLength, p.chestWidth, p.chestThickness);
     this._scaleBoneLTT(
       "upperChest",
       p.upperChestLength,
       p.upperChestWidth,
-      p.upperChestDepth,
+      p.upperChestThickness,
     );
-    this._scaleBoneLTT("neck", p.neckLength, p.neckThickness, p.neckThickness);
-    this._scaleBoneRole("head", p.headWidth, p.headLength, p.headWidth);
+    this._scaleBoneLTT("neck", p.neckLength, p.neckWidth, p.neckThickness);
+    this._scaleBoneRole("head", p.headWidth, p.headLength, p.headThickness);
     this._scaleBoneLTT(
       "leftShoulder",
+      p.shoulderLength,
       p.shoulderWidth,
-      1,
-      1,
+      p.shoulderThickness,
     );
     this._scaleBoneLTT(
       "rightShoulder",
+      p.shoulderLength,
       p.shoulderWidth,
-      1,
-      1,
+      p.shoulderThickness,
     );
     this._scaleBoneLTT(
       "leftUpperArm",
       p.upperArmLength,
-      p.upperArmThickness,
+      p.upperArmWidth,
       p.upperArmThickness,
     );
     this._scaleBoneLTT(
       "rightUpperArm",
       p.upperArmLength,
-      p.upperArmThickness,
+      p.upperArmWidth,
       p.upperArmThickness,
     );
     this._scaleBoneLTT(
       "leftLowerArm",
       p.lowerArmLength,
-      p.lowerArmThickness,
+      p.lowerArmWidth,
       p.lowerArmThickness,
     );
     this._scaleBoneLTT(
       "rightLowerArm",
       p.lowerArmLength,
-      p.lowerArmThickness,
+      p.lowerArmWidth,
       p.lowerArmThickness,
     );
     this._scaleBoneLTT("leftHand", p.handLength, p.handWidth, p.handThickness);
@@ -651,40 +688,40 @@ export class BodyShapeController {
     this._scaleBoneLTT(
       "leftUpperLeg",
       p.upperLegLength,
-      p.upperLegThickness,
+      p.upperLegWidth,
       p.upperLegThickness,
     );
     this._scaleBoneLTT(
       "rightUpperLeg",
       p.upperLegLength,
-      p.upperLegThickness,
+      p.upperLegWidth,
       p.upperLegThickness,
     );
     this._scaleBoneLTT(
       "leftLowerLeg",
       p.lowerLegLength,
-      p.lowerLegThickness,
+      p.lowerLegWidth,
       p.lowerLegThickness,
     );
     this._scaleBoneLTT(
       "rightLowerLeg",
       p.lowerLegLength,
-      p.lowerLegThickness,
+      p.lowerLegWidth,
       p.lowerLegThickness,
     );
-    this._scaleBoneLTT("leftFoot", p.footLength, p.footWidth, p.footHeight);
-    this._scaleBoneLTT("rightFoot", p.footLength, p.footWidth, p.footHeight);
+    this._scaleBoneLTT("leftFoot", p.footLength, p.footWidth, p.footThickness);
+    this._scaleBoneLTT("rightFoot", p.footLength, p.footWidth, p.footThickness);
     this._scaleBoneLTT(
       "leftToes",
       p.toesLength,
-      p.footWidth * 0.8,
-      p.footHeight * 0.8,
+      p.toesWidth,
+      p.toesThickness,
     );
     this._scaleBoneLTT(
       "rightToes",
       p.toesLength,
-      p.footWidth * 0.8,
-      p.footHeight * 0.8,
+      p.toesWidth,
+      p.toesThickness,
     );
 
     FINGER_BONE_NAMES.forEach((name) => {
@@ -700,7 +737,7 @@ export class BodyShapeController {
       this._scaleBoneLTT(
         name,
         p[key + "Length"],
-        p[key + "Thickness"],
+        p[key + "Width"],
         p[key + "Thickness"],
       );
     });
@@ -761,7 +798,7 @@ export class BodyShapeController {
       return;
     }
     const soleGap = this._footGroundOffset * (p.height || 1) *
-      (p.footHeight || 1);
+      (p.footThickness || 1);
     vrm.scene.position.set(keepX, -(minY - soleGap), keepZ);
     vrm.scene.updateMatrixWorld(true);
   }
@@ -785,17 +822,24 @@ export class BodyShapeController {
     this.params.bodyType = t;
     // 細身〜ぽっちゃり: 胴の横幅・奥行きと四肢の太さを連動させる
     // （BWH 計測が太さ変化を拾えるよう、幅だけでなく奥行きも動かす）
-    this.params.waistSize = 1 + t * 0.5;
+    this.params.waistWidth = 1 + t * 0.5;
+    this.params.waistThickness = 1 + t * 0.35;
     this.params.chestWidth = 1 + t * 0.22;
-    this.params.chestDepth = 1 + t * 0.18;
+    this.params.chestThickness = 1 + t * 0.18;
     this.params.upperChestWidth = 1 + t * 0.22;
-    this.params.upperChestDepth = 1 + t * 0.18;
+    this.params.upperChestThickness = 1 + t * 0.18;
     this.params.hipWidth = 1 + t * 0.28;
-    this.params.hipDepth = 1 + t * 0.22;
+    this.params.hipThickness = 1 + t * 0.22;
+    this.params.upperArmWidth = 1 + t * 0.35;
     this.params.upperArmThickness = 1 + t * 0.4;
+    this.params.lowerArmWidth = 1 + t * 0.35;
     this.params.lowerArmThickness = 1 + t * 0.4;
+    this.params.upperLegWidth = 1 + t * 0.35;
     this.params.upperLegThickness = 1 + t * 0.4;
+    this.params.lowerLegWidth = 1 + t * 0.35;
     this.params.lowerLegThickness = 1 + t * 0.4;
+    this.params.shoulderWidth = 1 + t * 0.2;
+    this.params.shoulderThickness = 1 + t * 0.2;
     this.syncUI();
     this.apply();
   }
@@ -921,13 +965,13 @@ export class BodyShapeController {
 
     // 座高: 座面（hips 中心 − 骨盤厚みの半分）〜 頭頂
     // hips は骨盤中心なので、そのままだと実際の座面より高くなり座高が短く出る。
-    // hipDepth / build / height で厚み分を下げ、身長比でガードする。
+    // hipThickness / build / height で厚み分を下げ、身長比でガードする。
     let sittingM = heightM * 0.52;
     if (hips) {
       hips.getWorldPosition(pos);
       const hp = this.params;
       const hipHalf = 0.04 * (hp.height || 1) * (hp.build || 1) *
-        (hp.hipDepth || 1);
+        (hp.hipThickness || 1);
       const seatOffset = Math.min(
         Math.max(hipHalf, heightM * 0.02),
         heightM * 0.06,
@@ -970,13 +1014,13 @@ export class BodyShapeController {
     let hipM = 0;
     if (rest?.bust && rest?.waist && rest?.hip) {
       // 幅・奥行きを別々にスケールしてから Ramanujan 楕円周長
-      // spine の Z は hipDepth 連動のため、W の前後にも少し反映
+      // spine の Z は waistThickness 連動のため、W の前後にも少し反映
       const ba = rest.bust.a * build * (p.chestWidth || 1);
-      const bb = rest.bust.b * build * (p.chestDepth || 1);
-      const wa = rest.waist.a * build * (p.waistSize || 1);
-      const wb = rest.waist.b * build * (p.waistSize || 1);
+      const bb = rest.bust.b * build * (p.chestThickness || 1);
+      const wa = rest.waist.a * build * (p.waistWidth || 1);
+      const wb = rest.waist.b * build * (p.waistThickness || 1);
       const ha = rest.hip.a * build * (p.hipWidth || 1);
-      const hb = rest.hip.b * build * (p.hipDepth || 1);
+      const hb = rest.hip.b * build * (p.hipThickness || 1);
       bustM = this._ellipseGirth(ba, bb);
       waistM = this._ellipseGirth(wa, wb);
       hipM = this._ellipseGirth(ha, hb);
